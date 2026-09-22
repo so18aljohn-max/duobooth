@@ -24,23 +24,32 @@
     button,input,select{font:inherit}
     button{cursor:pointer}
     .app{max-width:1180px;margin:0 auto;padding:20px}
-    .nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0 20px}
-    .brand{font-family:"Playfair Display",serif;font-size:30px;font-weight:600;letter-spacing:-.04em}
+    .nav{display:flex;align-items:center;justify-content:center;gap:12px;padding:18px 0 8px;position:relative}
+    .nav .pill{position:absolute;right:0;top:14px}
+    .brand{font-family:"Playfair Display",serif;font-size:34px;font-weight:600;letter-spacing:-.04em;text-align:center}
     .brand span{font-style:italic}
     .pill{border:2px solid var(--line);background:white;border-radius:999px;padding:10px 14px;font-weight:700;box-shadow:3px 3px 0 var(--line)}
-    .hero{display:grid;grid-template-columns:1.08fr .92fr;gap:28px;align-items:center;padding:28px 0 46px}
-    .eyebrow{display:inline-block;border:2px solid var(--line);border-radius:999px;padding:7px 11px;background:var(--yellow);font-size:13px;font-weight:700;transform:rotate(-1deg)}
-    h1{font-family:"Playfair Display",serif;font-size:clamp(54px,8vw,94px);line-height:.88;letter-spacing:-.055em;margin:18px 0 18px}
-    .hero p{font-size:19px;line-height:1.55;max-width:650px}
-    .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px}
+    .hero{display:flex;flex-direction:column;align-items:center;text-align:center;gap:20px;padding:56px 0 64px;position:relative}
+    .hero::before{content:"";position:absolute;inset:10px 4% auto;height:420px;border-radius:42px;background:
+      radial-gradient(circle at 20% 20%,rgba(255,209,226,.7),transparent 35%),
+      radial-gradient(circle at 80% 25%,rgba(206,222,255,.7),transparent 34%),
+      linear-gradient(180deg,rgba(255,255,255,.72),rgba(255,248,238,.35));z-index:-1;filter:blur(.2px)}
+    .hero-copy{max-width:760px;display:flex;flex-direction:column;align-items:center}
+
+    .eyebrow{display:inline-block;border:2px solid var(--line);border-radius:999px;padding:8px 13px;background:#ffe8a9;font-size:13px;font-weight:700;transform:none;box-shadow:3px 3px 0 rgba(27,26,24,.16)}
+    h1{font-family:"Playfair Display",serif;font-size:clamp(62px,9vw,108px);line-height:.9;letter-spacing:-.06em;margin:18px 0 14px;text-wrap:balance}
+    .hero p{font-size:18px;line-height:1.6;max-width:700px;margin:0 auto;color:#5c5252}
+    .actions{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin-top:24px}
     .btn{border:2px solid var(--line);padding:13px 18px;border-radius:14px;background:white;font-weight:800;box-shadow:var(--shadow);transition:.15s transform,.15s box-shadow}
     .btn:hover{transform:translate(3px,3px);box-shadow:4px 4px 0 var(--line)}
-    .btn.primary{background:var(--rose)}
+    .btn.primary{background:linear-gradient(180deg,#f7bfd0,#efa9bd)}
     .btn.secondary{background:var(--blue)}
-    .mini-note{margin-top:16px;font-size:13px;opacity:.7}
-    .preview-card{border:2px solid var(--line);background:#fff;border-radius:22px;padding:16px;box-shadow:var(--shadow);transform:rotate(1.2deg)}
-    .mock-strip{width:100%;aspect-ratio:3/4;border-radius:14px;background:#202020;padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:8px;overflow:hidden}
-    .mock-shot{border-radius:8px;min-height:0;position:relative;overflow:hidden;background:linear-gradient(145deg,#f5b6c5,#a8d5ff)}
+    .mini-note{margin-top:16px;font-size:13px;opacity:.72;max-width:560px;text-align:center}
+    .preview-card{border:2px solid var(--line);background:rgba(255,255,255,.88);border-radius:28px;padding:18px;box-shadow:8px 8px 0 rgba(27,26,24,.85);transform:none;width:min(420px,88vw);position:relative}
+    .preview-card::before,.preview-card::after{content:"";position:absolute;border:2px solid var(--line);background:#ffd9e4;width:54px;height:20px;top:-12px;border-radius:6px;opacity:.9}
+    .preview-card::before{left:38px;transform:rotate(-7deg)}.preview-card::after{right:38px;transform:rotate(7deg)}
+    .mock-strip{width:100%;aspect-ratio:4/5;border-radius:18px;background:linear-gradient(160deg,#fce4ec,#e8eefc);padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;overflow:hidden;border:2px solid var(--line)}
+    .mock-shot{border-radius:12px;min-height:0;position:relative;overflow:hidden;background:linear-gradient(145deg,#f3bfd0,#b9d8ff);border:1.5px solid rgba(27,26,24,.55)}
     .mock-shot::after{content:"♡";font-size:42px;position:absolute;inset:0;display:grid;place-items:center;color:white;text-shadow:0 2px 4px #0003}
     .section{padding:40px 0}
     .panel{border:2px solid var(--line);border-radius:22px;background:rgba(255,255,255,.94);box-shadow:var(--shadow);padding:20px;overflow:visible}
@@ -128,8 +137,8 @@
     #stage.solo-stage .video-grid{grid-template-columns:1fr}
     #stage.solo-stage .video-cell:last-child{display:none}
     @media(max-width:900px){
-      .hero,.stage-wrap,.editor.active{grid-template-columns:1fr}
-      .hero{padding-top:10px}.preview-card{max-width:560px}
+      .stage-wrap,.editor.active{grid-template-columns:1fr}
+      .hero{padding-top:32px}.preview-card{max-width:420px}
       .stage{min-height:0;aspect-ratio:4/3}
       .controls{order:0}.room-grid{grid-template-columns:1fr}.shots{grid-template-columns:repeat(3,1fr)}
       .video-grid{grid-template-columns:1fr 1fr}
@@ -139,10 +148,10 @@
       html,body{width:100%;max-width:100%;overflow-x:hidden}
       body{min-height:100dvh}
       .app{width:100%;max-width:100%;padding:10px}
-      .nav{padding:4px 2px 8px}.brand{font-size:24px}.pill{display:none}
+      .nav{padding:10px 2px 4px}.brand{font-size:28px}.pill{display:none}
       h1{font-size:clamp(46px,15vw,64px);line-height:.92}
-      .hero{gap:16px;padding:14px 0 28px}.hero p{font-size:16px}
-      .preview-card{display:none}.section{padding:24px 0}
+      .hero{gap:18px;padding:32px 0 36px}.hero p{font-size:16px;padding:0 8px}.hero::before{inset:4px 0 auto;height:360px;border-radius:28px}
+      .preview-card{display:block;width:min(360px,92vw)}.section{padding:24px 0}
       .panel{padding:12px;border-radius:16px;box-shadow:4px 4px 0 var(--line)}
       .panel h2{font-size:31px}.room-grid{gap:12px}.card{padding:14px}
       .input-row{display:grid;grid-template-columns:1fr}.input-row .btn{width:100%}
@@ -189,7 +198,7 @@
     </nav>
 
     <section class="hero" id="home">
-      <div>
+      <div class="hero-copy">
         <span class="eyebrow">portable · in-person first · works in your browser</span>
         <h1>One booth.<br>Any place.</h1>
         <p>Set up your phone, open the booth, and start shooting. Choose 1–4 favorites, reposition them freely, then export Polaroids, classic strips, film frames, grids, stories, and more.</p>
