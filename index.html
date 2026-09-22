@@ -482,7 +482,7 @@
   const $ = id => document.getElementById(id);
   const delay = ms => new Promise(r => setTimeout(r, ms));
   function setCameraStatus(text){const e=$('cameraStatus');if(e)e.textContent=text}
-  function setLegacyStatus(text){const e=$('boothStatus'));if(e)e.textContent=text}
+  function setLegacyStatus(text){const e=$('boothStatus');if(e)e.textContent=text}
   function updateConnection(ok,text){
     const dot=$('connectionDot'),label=$('connectionText');
     if(dot)dot.classList.toggle('ok',ok);
@@ -1040,14 +1040,7 @@
     const src=$('stripCanvas'),dst=$('floatingCanvas'); if(!src||!dst||!src.width||!src.height)return;
     dst.width=src.width;dst.height=src.height;const dctx=dst.getContext('2d');dctx.clearRect(0,0,dst.width,dst.height);dctx.drawImage(src,0,0)
   }
-  function updateFloatingPreview(){
-    const fp=$('floatingPreview'),editor=$('editor'),card=document.querySelector('.strip-card');
-    if(!fp||!editor||!card||window.innerWidth>700||!editor.classList.contains('active')){fp?.classList.remove('show');return}
-    const er=editor.getBoundingClientRect(),cr=card.getBoundingClientRect();
-    const should=cr.bottom<70 && er.bottom>120;
-    fp.classList.toggle('show',should);fp.setAttribute('aria-hidden',should?'false':'true');
-    if(should)syncFloatingPreview()
-  }
+  function updateFloatingPreview(){const fp=$('floatingPreview');if(fp)fp.classList.remove('show')}
   async function getBlob(){await renderStrip();return await new Promise(r=>$('stripCanvas').toBlob(r,'image/png',1))}
   async function downloadStrip(){const b=await getBlob(),a=document.createElement('a');a.download='pias-booth-'+Date.now()+'.png';a.href=URL.createObjectURL(b);a.click();URL.revokeObjectURL(a.href);goPhase(7)}
   async function shareStrip(){const b=await getBlob(),f=new File([b],'pias-booth.png',{type:'image/png'});if(navigator.canShare?.({files:[f]})){await navigator.share({files:[f],title:"Pia's Booth"});goPhase(7)}else downloadStrip()}
