@@ -200,6 +200,14 @@
     .select-wrap{max-width:900px;margin:0 auto}
     .save-phase{max-width:520px;margin:0 auto;text-align:center}
     .session-setup{max-width:680px;margin:0 auto;display:grid;gap:14px}
+    .setup-start-row{display:flex!important;justify-content:center!important;align-items:center!important;margin-top:22px!important;position:static!important;background:transparent!important;padding:0!important}
+    .setup-start-row .btn{flex:0 0 auto!important;width:auto!important;min-width:220px!important}
+    .camera-power{grid-column:1/-1;background:#fff}
+    .camera-power.on{background:#dff4df}
+    .camera-power.off{background:#ffe2e7}
+    .camera-power .power-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#999;margin-right:7px;vertical-align:middle}
+    .camera-power.on .power-dot{background:#55bd69}
+    .camera-power.off .power-dot{background:#d85d72}
     .setup-card{border:2px solid var(--line);border-radius:18px;background:#fff;padding:18px;box-shadow:4px 4px 0 rgba(27,26,24,.7);text-align:center}
     .setup-card>label{display:block;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;text-align:center}
     .choice-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:520px;margin:0 auto}
@@ -309,13 +317,14 @@
             <div class="setup-card">
               <label>Camera</label>
               <div class="utility-grid">
+                <button class="utility camera-power on" id="cameraPowerBtn" onclick="toggleCameraPower()"><span class="power-dot"></span>Camera on</button>
                 <button class="utility on" id="mirrorBtn" onclick="toggleMirror()">Mirror on</button>
                 <button class="utility" id="gridBtn" onclick="toggleGrid()">Grid off</button>
                 <button class="utility" id="cameraFacingBtn" onclick="toggleCameraFacing()">Front camera</button>
               </div>
             </div>
           </div>
-          <div class="phase-nav"><button class="btn primary" onclick="beginAutoSession()">Start session ♡</button></div>
+          <div class="phase-nav setup-start-row"><button class="btn primary" onclick="beginAutoSession()">Start session ♡</button></div>
         </div>
 
         <div id="capturePhase" class="phase-section phase-hidden">
@@ -466,7 +475,7 @@
   let peer = null, dataConn = null, mediaCall = null;
   let localStream = null, remoteStream = null;
   let roomCode = null, isHost = false, soloMode = false;
-  let shots = [], selected = new Set(), frameColor = '#f4c7d2', layoutMode='classic', characterFrame='none', mirrorMode=true, cameraFacing='user', currentPhase=1, sessionCount=4, sessionCancelled=false, sessionRunning=false, deferredPrompt=null, cropState={}, activePhotoIndex=null, frameRects=[], dragState=null;
+  let shots = [], selected = new Set(), frameColor = '#f4c7d2', layoutMode='classic', characterFrame='none', mirrorMode=true, cameraFacing='user', currentPhase=1, sessionCount=4, sessionCancelled=false, sessionRunning=false, cameraEnabled=true, deferredPrompt=null, cropState={}, activePhotoIndex=null, frameRects=[], dragState=null;
 
   const $ = id => document.getElementById(id);
   const delay = ms => new Promise(r => setTimeout(r, ms));
@@ -486,7 +495,7 @@
   }
   function leaveBooth(){
     sessionCancelled=true;sessionRunning=false;
-    if(localStream){localStream.getTracks().forEach(t=>t.stop());localStream=null}
+    if(localStream){localStream.getTracks().forEach(t=>t.stop());localStream=null}cameraEnabled=false;
     if(remoteStream){remoteStream.getTracks?.().forEach?.(t=>t.stop());remoteStream=null}
     $('booth')?.classList.remove('active');
     document.querySelector('.app')?.classList.remove('booth-mode');
@@ -526,6 +535,11 @@
       const size=settings.width&&settings.height?` · ${settings.width}×${settings.height}`:'';
       $('boothStatus').textContent=(isFront?'Front':'Rear')+' camera ready'+size+'.';
       if(dataConn?.open&&!isHost)callHost();
+      cameraEnabled=true;
+      if($('cameraPowerBtn')){
+        $('cameraPowerBtn').classList.add('on');$('cameraPowerBtn').classList.remove('off');
+        $('cameraPowerBtn').innerHTML='<span class="power-dot"></span>Camera on';
+      }
       toast((isFront?'Front':'Rear')+' camera ready');
     }catch(e){
       $('boothStatus').textContent='Camera permission failed: '+e.message;
@@ -586,7 +600,7 @@
   function onRemoteStream(stream){ remoteStream=stream; $('remoteVideo').srcObject=stream; $('remoteEmpty').classList.add('hidden'); updateConnection(true,'Both cameras connected'); }
 
   async function startSolo(){
-    soloMode=true;isHost=true;roomCode='LOCAL';$('stage').classList.add('solo-stage');$('roomLabel').textContent='In-person photobooth';showBooth();updateConnection(true,'In-person booth');$('remoteEmpty').textContent='In-person mode';await enableCamera();await goPhase(1);
+    soloMode=true;isHost=true;roomCode='LOCAL';cameraEnabled=true;$('stage').classList.add('solo-stage');$('roomLabel').textContent='In-person photobooth';showBooth();updateConnection(true,'In-person booth');$('remoteEmpty').textContent='In-person mode';await enableCamera();await goPhase(1);
   }
 
   async function startSession(){return beginAutoSession()}
@@ -751,7 +765,7 @@
   function cancelAutoSession(){sessionCancelled=true;sessionRunning=false;toast('Session cancelled');goPhase(1)}
   async function beginAutoSession(){
     if(sessionRunning)return;
-    if(!localStream){toast('Enable your camera first');await enableCamera();if(!localStream)return}
+    if(!localStream){toast('Turning camera on…');await enableCamera();if(!localStream)return}
     if(!soloMode&&!isHost){toast('The host starts the shared session');return}
     sessionRunning=true;sessionCancelled=false;
     shots=[];selected.clear();cropState={};activePhotoIndex=null;frameRects=[];
@@ -781,6 +795,22 @@
       sessionRunning=false;
     }
   }
+  async function toggleCameraPower(){
+    if(cameraEnabled&&localStream){
+      localStream.getTracks().forEach(t=>t.stop());localStream=null;cameraEnabled=false;
+      const v=$('localVideo');if(v)v.srcObject=null;
+      $('localEmpty')?.classList.remove('hidden');
+      if($('localEmpty'))$('localEmpty').innerHTML='Camera is off<br>Tap “Camera off” to turn it back on.';
+      if($('cameraPowerBtn')){
+        $('cameraPowerBtn').classList.remove('on');$('cameraPowerBtn').classList.add('off');
+        $('cameraPowerBtn').innerHTML='<span class="power-dot"></span>Camera off';
+      }
+      toast('Camera off');
+      return;
+    }
+    await enableCamera();
+  }
+
   function toggleMirror(){
     if(cameraFacing!=='user')return;
     mirrorMode=!mirrorMode;
@@ -790,6 +820,8 @@
   }
   async function toggleCameraFacing(){
     cameraFacing=cameraFacing==='user'?'environment':'user';
+    if($('cameraFacingBtn'))$('cameraFacingBtn').textContent=cameraFacing==='user'?'Front camera':'Rear camera';
+    if(!cameraEnabled)return;
     if(localStream){localStream.getTracks().forEach(t=>t.stop());localStream=null;await delay(180)}
     if($('cameraFacingBtn'))$('cameraFacingBtn').textContent='Switching…';
     await enableCamera();
