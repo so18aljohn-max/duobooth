@@ -250,7 +250,7 @@
             <button class="btn" onclick="enableCamera()">Restart / switch on camera</button>
             <div class="utility-grid" style="margin-top:10px"><button class="utility on" id="mirrorBtn" onclick="toggleMirror()">Mirror on</button><button class="utility" id="gridBtn" onclick="toggleGrid()">Grid off</button></div>
             <label>Shot delay</label>
-            <select id="delaySelect"><option value="3">3 seconds</option><option value="5">5 seconds</option><option value="10">10 seconds</option></select>
+            <select id="delaySelect"><option value="0">No delay</option><option value="3">3 seconds</option><option value="5">5 seconds</option><option value="10">10 seconds</option></select>
             <label>Session</label>
             <button class="btn primary" onclick="startSession()">Take 6 photos</button>
             <button class="btn secondary" onclick="captureOne()" style="margin-top:10px">Take one photo</button>
@@ -433,7 +433,7 @@
     if(!soloMode && !isHost){ toast('The host starts the shared session'); return; }
     resetShots();
     for(let i=0;i<6;i++){
-      const poseIndex=i%poses.length; const seconds=Number($('delaySelect').value)||3; const startAt=Date.now()+900;
+      const poseIndex=i%poses.length; const seconds=Number($('delaySelect').value); const startAt=Date.now()+(seconds===0?0:900);
       if(dataConn?.open) dataConn.send({type:'countdown',startAt,delay:seconds,poseIndex});
       await runCountdownAt(startAt,seconds,poseIndex,true);
       await delay(650);
@@ -444,7 +444,7 @@
   async function captureOne(){
     if(!localStream){toast('Enable your camera first');return}
     if(!soloMode && !isHost){toast('The host controls synchronized shots');return}
-    const seconds=Number($('delaySelect').value)||3, startAt=Date.now()+700, poseIndex=shots.length%poses.length;
+    const seconds=Number($('delaySelect').value), startAt=Date.now()+(seconds===0?0:700), poseIndex=shots.length%poses.length;
     if(dataConn?.open) dataConn.send({type:'countdown',startAt,delay:seconds,poseIndex});
     await runCountdownAt(startAt,seconds,poseIndex,true);
   }
@@ -452,8 +452,8 @@
   async function runCountdownAt(startAt, seconds, poseIndex, capture){
     $('pose').textContent=poses[poseIndex%poses.length];
     const wait=Math.max(0,startAt-Date.now()); await delay(wait);
-    for(let n=seconds;n>=1;n--){ $('countdown').textContent=n; $('countdown').classList.add('show'); await delay(1000); }
-    $('countdown').textContent='♡'; await delay(90); $('flash').classList.remove('on'); void $('flash').offsetWidth; $('flash').classList.add('on');
+    if(seconds>0){for(let n=seconds;n>=1;n--){ $('countdown').textContent=n; $('countdown').classList.add('show'); await delay(1000); }}
+    $('countdown').textContent='♡'; $('countdown').classList.add('show'); await delay(seconds===0?40:90); $('flash').classList.remove('on'); void $('flash').offsetWidth; $('flash').classList.add('on');
     if(capture) takeCompositeShot();
     await delay(220); $('countdown').classList.remove('show');
   }
