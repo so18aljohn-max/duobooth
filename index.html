@@ -132,6 +132,19 @@
     .character[data-char="winter"]::before{background:radial-gradient(circle at 20% 30%,#fff 0 2px,transparent 3px),radial-gradient(circle at 70% 65%,#fff 0 2px,transparent 3px),#243453}
     .character[data-char="lace"]::before{background:repeating-radial-gradient(circle at 8px 18px,#fff 0 5px,#eab9cb 6px 8px,transparent 9px 16px),#fff4f8}
     .character[data-char="receipt"]::before{background:repeating-linear-gradient(#fbfaf4 0 7px,#ddd9ce 7px 8px)}
+    .character[data-char="paris"]::before{background:linear-gradient(135deg,#f6e8df,#d7e4f3);box-shadow:inset 0 0 0 6px #fff8}
+    .character[data-char="seoul"]::before{background:linear-gradient(135deg,#19162d,#704d9d 55%,#e977aa)}
+    .character[data-char="cafe"]::before{background:repeating-linear-gradient(#f4ead8 0 8px,#d7c3a4 8px 9px)}
+    .character[data-char="strawberry"]::before{background:radial-gradient(circle at 20% 40%,#e85c7d 0 5px,transparent 6px),radial-gradient(circle at 65% 70%,#e85c7d 0 5px,transparent 6px),#ffe7ef}
+    .character[data-char="halloween"]::before{background:radial-gradient(circle at 20% 50%,#f29633 0 6px,transparent 7px),#24182c}
+    .character[data-char="holiday"]::before{background:repeating-linear-gradient(135deg,#a52d3d 0 12px,#f8eee3 12px 24px)}
+    .sticker-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+    .sticker-btn{border:2px solid var(--line);border-radius:13px;background:#fff;padding:10px 5px;font-weight:800;font-size:11px;min-height:64px}
+    .sticker-btn:hover,.sticker-btn.on{background:var(--rose2)}
+    .sticker-icon{display:block;font-size:24px;line-height:1.1;margin-bottom:4px}
+    .sticker-controls{border:2px dashed var(--line);border-radius:14px;padding:12px;margin-top:14px;background:#fffaf5}
+    .sticker-controls .crop-actions{grid-template-columns:1fr 1fr}
+    @media(max-width:600px){.sticker-grid{grid-template-columns:repeat(3,1fr)}}
     .character.on{background:var(--rose2);box-shadow:inset 0 0 0 2px #111}
     .character small{display:block;font-weight:500;opacity:.62;margin-top:2px}
     @media(max-width:600px){.floating-preview{width:min(44vw,170px);top:8px;right:8px}.character-grid{grid-template-columns:repeat(2,1fr)}}
@@ -299,7 +312,8 @@
           <span class="stepchip" id="step4">4 · Frame</span>
           <span class="stepchip" id="step5">5 · Filter</span>
           <span class="stepchip" id="step6">6 · Finish</span>
-          <span class="stepchip" id="step7">7 · Save</span>
+          <span class="stepchip" id="step7">7 · Stickers</span>
+          <span class="stepchip" id="step8">8 · Save</span>
         </div>
         <p class="muted" id="roomLabel" style="text-align:center">In-person photobooth</p>
 
@@ -403,7 +417,13 @@
               <button class="character" data-char="lace" onclick="setCharacterFrame('lace',this)">Ribbon Lace<small>soft ribbon photo-strip style</small></button>
               <button class="character" data-char="receipt" onclick="setCharacterFrame('receipt',this)">Photo Receipt<small>thermal print / timestamp</small></button>
             </div>
-            <label>Frame color</label>
+                          <button class="character" data-char="paris" onclick="setCharacterFrame('paris',this)">Paris Postcard<small>travel postcard treatment</small></button>
+              <button class="character" data-char="seoul" onclick="setCharacterFrame('seoul',this)">Seoul Night<small>neon photo-booth border</small></button>
+              <button class="character" data-char="cafe" onclick="setCharacterFrame('cafe',this)">Cafe Menu<small>coffee-shop menu print</small></button>
+              <button class="character" data-char="strawberry" onclick="setCharacterFrame('strawberry',this)">Strawberry Milk<small>pink cafe / dessert pack</small></button>
+              <button class="character" data-char="halloween" onclick="setCharacterFrame('halloween',this)">Spooky Booth<small>October night theme</small></button>
+              <button class="character" data-char="holiday" onclick="setCharacterFrame('holiday',this)">Holiday Ribbon<small>festive red & cream pack</small></button>
+<label>Frame color</label>
             <div class="swatches">
               <button class="swatch theme-pink" onclick="setFrame('#f4c7d2')" aria-label="pink"></button>
               <button class="swatch theme-blue" onclick="setFrame('#c5ddfa')" aria-label="blue"></button>
@@ -445,14 +465,48 @@
               </div>
             </details>
           </div>
-          <div class="phase-nav"><button class="btn" onclick="goPhase(5)">← Filter</button><button class="btn primary" onclick="goPhase(7)">Preview & save →</button></div>
+          <div class="phase-nav"><button class="btn" onclick="goPhase(5)">← Filter</button><button class="btn primary" onclick="goPhase(7)">Add stickers →</button></div>
+        </div>
+
+        <div id="stickerPhase" class="phase-tools phase-section phase-hidden">
+          <h3 class="phase-title">Sticker time.</h3>
+          <p class="phase-sub">Tap a sticker to add it, then drag it anywhere on the strip. Resize or remove the active sticker below.</p>
+          <div class="editor-tools">
+            <div class="sticker-grid" id="stickerGrid">
+              <button class="sticker-btn" onclick="addSticker('heart')"><span class="sticker-icon">♡</span>Heart</button>
+              <button class="sticker-btn" onclick="addSticker('bow')"><span class="sticker-icon">⌁</span>Bow</button>
+              <button class="sticker-btn" onclick="addSticker('cherry')"><span class="sticker-icon">●●</span>Cherries</button>
+              <button class="sticker-btn" onclick="addSticker('flower')"><span class="sticker-icon">✿</span>Flower</button>
+              <button class="sticker-btn" onclick="addSticker('sparkle')"><span class="sticker-icon">✦</span>Sparkle</button>
+              <button class="sticker-btn" onclick="addSticker('smile')"><span class="sticker-icon">☺</span>Smiley</button>
+              <button class="sticker-btn" onclick="addSticker('cloud')"><span class="sticker-icon">☁</span>Cloud</button>
+              <button class="sticker-btn" onclick="addSticker('kiss')"><span class="sticker-icon">♡</span>Kiss mark</button>
+              <button class="sticker-btn" onclick="addSticker('cat')"><span class="sticker-icon">△</span>Cat</button>
+              <button class="sticker-btn" onclick="addSticker('bunny')"><span class="sticker-icon">⋒</span>Bunny</button>
+              <button class="sticker-btn" onclick="addSticker('cake')"><span class="sticker-icon">▤</span>Cake</button>
+              <button class="sticker-btn" onclick="addSticker('camera')"><span class="sticker-icon">▣</span>Camera</button>
+              <button class="sticker-btn" onclick="addSticker('plane')"><span class="sticker-icon">✈</span>Travel</button>
+              <button class="sticker-btn" onclick="addSticker('star')"><span class="sticker-icon">☆</span>Star</button>
+              <button class="sticker-btn" onclick="addSticker('ribbon')"><span class="sticker-icon">⌇</span>Ribbon</button>
+              <button class="sticker-btn" onclick="addSticker('date')"><span class="sticker-icon">□</span>Date stamp</button>
+            </div>
+            <div class="sticker-controls">
+              <strong id="activeStickerLabel">No sticker selected</strong>
+              <label>Sticker size</label>
+              <input class="range" id="stickerSize" type="range" min="5" max="35" value="13" oninput="resizeActiveSticker(this.value)" />
+              <label>Rotation</label>
+              <input class="range" id="stickerRotation" type="range" min="-180" max="180" value="0" oninput="rotateActiveSticker(this.value)" />
+              <div class="crop-actions"><button onclick="removeActiveSticker()">Remove active</button><button onclick="clearStickers()">Clear all</button></div>
+            </div>
+          </div>
+          <div class="phase-nav"><button class="btn" onclick="goPhase(6)">← Finishing touches</button><button class="btn primary" onclick="goPhase(8)">Preview & save →</button></div>
         </div>
 
         <div id="savePhase" class="save-phase phase-section phase-hidden">
           <h3 class="phase-title">Keep this one ♡</h3>
           <p class="phase-sub">Your finished frame is ready in high resolution.</p>
           <div class="save-card"><canvas id="finalCanvas" width="900" height="1500"></canvas></div>
-          <div class="phase-nav"><button class="btn" onclick="goPhase(6)">← Finishing touches</button><button class="btn primary" onclick="downloadStrip()">Download PNG</button><button class="btn secondary" onclick="shareStrip()">Share</button></div>
+          <div class="phase-nav"><button class="btn" onclick="goPhase(7)">← Stickers</button><button class="btn primary" onclick="downloadStrip()">Download PNG</button><button class="btn secondary" onclick="shareStrip()">Share</button></div>
         </div>
       </div>
     </section>
@@ -483,7 +537,7 @@
   let peer = null, dataConn = null, mediaCall = null;
   let localStream = null, remoteStream = null;
   let roomCode = null, isHost = false, soloMode = false;
-  let shots = [], selected = new Set(), frameColor = '#f4c7d2', layoutMode='classic', characterFrame='none', mirrorMode=true, cameraFacing='user', currentPhase=1, sessionCount=4, sessionCancelled=false, sessionRunning=false, cameraEnabled=true, deferredPrompt=null, cropState={}, activePhotoIndex=null, frameRects=[], dragState=null;
+  let shots = [], selected = new Set(), frameColor = '#f4c7d2', layoutMode='classic', characterFrame='none', mirrorMode=true, cameraFacing='user', currentPhase=1, sessionCount=4, sessionCancelled=false, sessionRunning=false, cameraEnabled=true, deferredPrompt=null, cropState={}, activePhotoIndex=null, frameRects=[], dragState=null, stickers=[], activeStickerId=null, stickerDrag=null;
 
   const $ = id => document.getElementById(id);
   const delay = ms => new Promise(r => setTimeout(r, ms));
@@ -738,7 +792,7 @@
     renderShots();
   }
 
-  function resetShots(){shots=[];selected.clear();cropState={};activePhotoIndex=null;frameRects=[];$('shots').innerHTML='';updateCaptureUI();goPhase(1)}
+  function resetShots(){shots=[];selected.clear();cropState={};activePhotoIndex=null;frameRects=[];stickers=[];activeStickerId=null;$('shots').innerHTML='';updateCaptureUI();goPhase(1)}
   function setFrame(c){ frameColor=c; renderStrip(); }
 
   function applyFilter(ctx,type,w,h){
@@ -753,18 +807,18 @@
   }
 
   const filterNames=[['none','Natural'],['warm','Warm'],['mono','B&W'],['soft','Soft'],['sepia','Sepia'],['cool','Cool'],['vintage','Vintage'],['bright','Bright'],['fade','Faded'],['contrast','Punchy']];
-  function setStep(n){[1,2,3,4,5,6,7].forEach(i=>{const e=$('step'+i);if(e)e.classList.toggle('on',i===n)})}
+  function setStep(n){[1,2,3,4,5,6,7,8].forEach(i=>{const e=$('step'+i);if(e)e.classList.toggle('on',i===n)})}
   async function goPhase(n){
     if(n>=3&&shots.length===0){toast('Take a session first.');return}
     if(n>=4&&selected.size===0){toast('Choose at least one favorite first.');return}
     currentPhase=n;setStep(n);
-    const map={1:'setupPhase',2:'capturePhase',3:'selectPhase',4:'framePhase',5:'filterPhase',6:'finishPhase',7:'savePhase'};
+    const map={1:'setupPhase',2:'capturePhase',3:'selectPhase',4:'framePhase',5:'filterPhase',6:'finishPhase',7:'stickerPhase',8:'savePhase'};
     Object.values(map).forEach(id=>$(id)?.classList.add('phase-hidden'));
     $(map[n])?.classList.remove('phase-hidden');
-    const showPreview=n>=4&&n<=6;
+    const showPreview=n>=4&&n<=7;
     $('previewDock')?.classList.toggle('phase-hidden',!showPreview);
     if(showPreview){renderPhotoTabs();syncCropControls();await renderStrip()}
-    if(n===7){await renderStrip();syncFinalCanvas()}
+    if(n===8){await renderStrip();syncFinalCanvas()}
     $('booth')?.scrollIntoView({behavior:'smooth',block:'start'});
   }
   function syncFinalCanvas(){
@@ -922,6 +976,55 @@
     if(activePhotoIndex===null)return;
     cropState[activePhotoIndex]={zoom:1,panX:0,panY:0,fit:'cover'};
     syncCropControls();renderStrip()
+  }
+
+  function stickerName(type){
+    return ({heart:'Heart',bow:'Bow',cherry:'Cherries',flower:'Flower',sparkle:'Sparkle',smile:'Smiley',cloud:'Cloud',kiss:'Kiss mark',cat:'Cat',bunny:'Bunny',cake:'Cake',camera:'Camera',plane:'Travel',star:'Star',ribbon:'Ribbon',date:'Date stamp'})[type]||type
+  }
+  function addSticker(type){
+    const id=Date.now()+Math.random();
+    stickers.push({id,type,x:.5,y:.5,size:.13,rot:0});
+    activeStickerId=id;syncStickerControls();renderStrip()
+  }
+  function activeSticker(){return stickers.find(s=>s.id===activeStickerId)||null}
+  function syncStickerControls(){
+    const st=activeSticker();
+    if($('activeStickerLabel'))$('activeStickerLabel').textContent=st?'Selected: '+stickerName(st.type):'No sticker selected';
+    if(st&&$('stickerSize'))$('stickerSize').value=Math.round(st.size*100);
+    if(st&&$('stickerRotation'))$('stickerRotation').value=st.rot||0
+  }
+  function resizeActiveSticker(v){const st=activeSticker();if(!st)return;st.size=Math.max(.05,Math.min(.35,Number(v)/100));renderStrip()}
+  function rotateActiveSticker(v){const st=activeSticker();if(!st)return;st.rot=Number(v)||0;renderStrip()}
+  function removeActiveSticker(){if(activeStickerId===null)return;stickers=stickers.filter(s=>s.id!==activeStickerId);activeStickerId=stickers.at(-1)?.id??null;syncStickerControls();renderStrip()}
+  function clearStickers(){stickers=[];activeStickerId=null;syncStickerControls();renderStrip()}
+  function stickerAt(pt,W,H){
+    for(let i=stickers.length-1;i>=0;i--){const st=stickers[i],r=st.size*Math.min(W,H)*.62,cx=st.x*W,cy=st.y*H;if(Math.hypot(pt.x-cx,pt.y-cy)<=r)return st}
+    return null
+  }
+  function drawSticker(ctx,st,W,H){
+    const unit=st.size*Math.min(W,H),x=st.x*W,y=st.y*H;
+    ctx.save();ctx.translate(x,y);ctx.rotate((st.rot||0)*Math.PI/180);ctx.lineCap='round';ctx.lineJoin='round';
+    const outline='#2e2928',pink='#ee8fac',red='#d9506c',blue='#8bb7e9',yellow='#f2cf6c',cream='#fff5e7',green='#75a879';
+    ctx.lineWidth=Math.max(3,unit*.07);ctx.strokeStyle=outline;
+
+    if(st.type==='heart'){heart(0,unit*.08,unit*.7,pink,outline)}
+    if(st.type==='star'||st.type==='sparkle'){star(0,0,unit*.42,st.type==='star'?yellow:'#fff3ad',outline);if(st.type==='sparkle'){star(unit*.42,-unit*.28,unit*.16,'#c9dcff',outline)}}
+    if(st.type==='flower'){for(let i=0;i<6;i++){ctx.save();ctx.rotate(i*Math.PI/3);ctx.fillStyle=i%2?pink:'#ffd7e3';ctx.beginPath();ctx.ellipse(0,-unit*.28,unit*.18,unit*.28,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore()}ctx.fillStyle=yellow;ctx.beginPath();ctx.arc(0,0,unit*.15,0,Math.PI*2);ctx.fill();ctx.stroke()}
+    if(st.type==='cherry'){ctx.strokeStyle=green;ctx.beginPath();ctx.moveTo(-unit*.2,-unit*.02);ctx.quadraticCurveTo(-unit*.1,-unit*.45,unit*.08,-unit*.38);ctx.moveTo(unit*.2,-unit*.02);ctx.quadraticCurveTo(unit*.12,-unit*.45,unit*.08,-unit*.38);ctx.stroke();ctx.fillStyle=red;[-.22,.22].forEach(px=>{ctx.beginPath();ctx.arc(unit*px,unit*.13,unit*.22,0,Math.PI*2);ctx.fill();ctx.stroke()})}
+    if(st.type==='bow'){ctx.fillStyle=pink;ctx.beginPath();ctx.moveTo(0,0);ctx.bezierCurveTo(-unit*.18,-unit*.32,-unit*.52,-unit*.35,-unit*.48,unit*.05);ctx.bezierCurveTo(-unit*.42,unit*.35,-unit*.15,unit*.2,0,0);ctx.bezierCurveTo(unit*.18,-unit*.32,unit*.52,-unit*.35,unit*.48,unit*.05);ctx.bezierCurveTo(unit*.42,unit*.35,unit*.15,unit*.2,0,0);ctx.fill();ctx.stroke();ctx.fillStyle=cream;ctx.beginPath();ctx.arc(0,0,unit*.12,0,Math.PI*2);ctx.fill();ctx.stroke()}
+    if(st.type==='smile'){ctx.fillStyle=yellow;ctx.beginPath();ctx.arc(0,0,unit*.42,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle=outline;ctx.beginPath();ctx.arc(-unit*.14,-unit*.08,unit*.04,0,Math.PI*2);ctx.arc(unit*.14,-unit*.08,unit*.04,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(0,unit*.04,unit*.18,0.15,Math.PI-.15);ctx.stroke()}
+    if(st.type==='cloud'){ctx.fillStyle='#eef6ff';[[-.25,.05,.25],[0,-.1,.32],[.28,.06,.23]].forEach(([cx,cy,r])=>{ctx.beginPath();ctx.arc(unit*cx,unit*cy,unit*r,0,Math.PI*2);ctx.fill();ctx.stroke()});ctx.fillRect(-unit*.42,0,unit*.84,unit*.18)}
+    if(st.type==='kiss'){ctx.strokeStyle=red;ctx.lineWidth=Math.max(4,unit*.08);ctx.beginPath();ctx.bezierCurveTo(-unit*.38,0,-unit*.18,-unit*.3,0,-unit*.06);ctx.bezierCurveTo(unit*.18,-unit*.3,unit*.38,0,0,unit*.14);ctx.bezierCurveTo(-unit*.12,unit*.08,-unit*.22,unit*.06,-unit*.38,0);ctx.stroke()}
+    if(st.type==='cat'||st.type==='bunny'){ctx.fillStyle=cream;ctx.beginPath();ctx.arc(0,unit*.03,unit*.34,0,Math.PI*2);ctx.fill();ctx.stroke();if(st.type==='cat'){ctx.beginPath();ctx.moveTo(-unit*.27,-unit*.18);ctx.lineTo(-unit*.31,-unit*.48);ctx.lineTo(-unit*.08,-unit*.3);ctx.moveTo(unit*.27,-unit*.18);ctx.lineTo(unit*.31,-unit*.48);ctx.lineTo(unit*.08,-unit*.3);ctx.stroke()}else{ctx.beginPath();ctx.ellipse(-unit*.13,-unit*.45,unit*.1,unit*.28,-.1,0,Math.PI*2);ctx.ellipse(unit*.13,-unit*.45,unit*.1,unit*.28,.1,0,Math.PI*2);ctx.fill();ctx.stroke()}ctx.fillStyle=outline;ctx.beginPath();ctx.arc(-unit*.11,0,unit*.035,0,Math.PI*2);ctx.arc(unit*.11,0,unit*.035,0,Math.PI*2);ctx.fill()}
+    if(st.type==='cake'){ctx.fillStyle='#ffd9e5';ctx.fillRect(-unit*.36,-unit*.05,unit*.72,unit*.36);ctx.strokeRect(-unit*.36,-unit*.05,unit*.72,unit*.36);ctx.fillStyle=cream;ctx.fillRect(-unit*.3,-unit*.2,unit*.6,unit*.18);ctx.strokeRect(-unit*.3,-unit*.2,unit*.6,unit*.18);ctx.strokeStyle=outline;ctx.beginPath();ctx.moveTo(0,-unit*.2);ctx.lineTo(0,-unit*.43);ctx.stroke();ctx.fillStyle=yellow;ctx.beginPath();ctx.arc(0,-unit*.47,unit*.07,0,Math.PI*2);ctx.fill()}
+    if(st.type==='camera'){ctx.fillStyle='#cdddf2';ctx.fillRect(-unit*.4,-unit*.25,unit*.8,unit*.5);ctx.strokeRect(-unit*.4,-unit*.25,unit*.8,unit*.5);ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(0,0,unit*.2,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle=pink;ctx.fillRect(-unit*.27,-unit*.37,unit*.25,unit*.13);ctx.strokeRect(-unit*.27,-unit*.37,unit*.25,unit*.13)}
+    if(st.type==='plane'){ctx.fillStyle='#dfe9f8';ctx.beginPath();ctx.moveTo(unit*.45,0);ctx.lineTo(-unit*.05,-unit*.1);ctx.lineTo(-unit*.34,-unit*.38);ctx.lineTo(-unit*.18,-unit*.06);ctx.lineTo(-unit*.45,unit*.05);ctx.lineTo(-unit*.18,unit*.12);ctx.lineTo(-unit*.3,unit*.4);ctx.lineTo(0,unit*.16);ctx.closePath();ctx.fill();ctx.stroke()}
+    if(st.type==='ribbon'){ctx.fillStyle=pink;ctx.fillRect(-unit*.13,-unit*.42,unit*.26,unit*.62);ctx.strokeRect(-unit*.13,-unit*.42,unit*.26,unit*.62);ctx.beginPath();ctx.moveTo(-unit*.13,unit*.2);ctx.lineTo(-unit*.34,unit*.42);ctx.lineTo(0,unit*.3);ctx.lineTo(unit*.34,unit*.42);ctx.lineTo(unit*.13,unit*.2);ctx.fill();ctx.stroke()}
+    if(st.type==='date'){ctx.fillStyle='#fff8ea';ctx.fillRect(-unit*.46,-unit*.25,unit*.92,unit*.5);ctx.strokeRect(-unit*.46,-unit*.25,unit*.92,unit*.5);ctx.fillStyle=outline;ctx.font='700 '+Math.round(unit*.18)+'px monospace';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(new Date().toLocaleDateString(),0,0)}
+    ctx.restore()
+  }
+  function drawAllStickers(ctx,W,H){
+    stickers.forEach(st=>drawSticker(ctx,st,W,H))
   }
 
   async function renderStrip(){
@@ -1142,17 +1245,73 @@
         ctx.fillStyle='#332f2a';ctx.font='700 '+Math.round(W*.018)+'px monospace';ctx.textAlign='center';ctx.fillText('PIA’S PHOTO RECEIPT',W/2,Math.max(36,W*.04));
         ctx.font='600 '+Math.round(W*.014)+'px monospace';ctx.fillText(new Date().toLocaleString(),W/2,H-42);ctx.fillText('MEMORY TOTAL: PRICELESS',W/2,H-18)
       }
+      if(characterFrame==='paris'){
+        ctx.strokeStyle='#7f6d7a';ctx.lineWidth=Math.max(3,W*.004);ctx.strokeRect(W*.018,H*.012,W*.964,H*.955);
+        ctx.fillStyle='#f4e8df';ctx.fillRect(0,0,W,Math.max(45,W*.052));
+        ctx.fillStyle='#53444f';ctx.font='italic '+Math.round(W*.025)+'px Georgia';ctx.textAlign='center';ctx.fillText('souvenir de paris',W/2,Math.max(34,W*.038));
+        ctx.font='700 '+Math.round(W*.014)+'px monospace';ctx.textAlign='right';ctx.fillText('CARTE POSTALE',W*.94,H-18)
+      }
+      if(characterFrame==='seoul'){
+        const bh=Math.max(48,W*.055);ctx.fillStyle='#17152a';ctx.fillRect(0,0,W,bh);ctx.fillRect(0,H-bh,W,bh);
+        ctx.shadowBlur=12;ctx.shadowColor='#ff75b5';ctx.fillStyle='#ffd7eb';ctx.font='800 '+Math.round(W*.024)+'px DM Sans';ctx.textAlign='center';ctx.fillText('SEOUL PHOTO NIGHT',W/2,bh*.65);ctx.shadowBlur=0;
+        borderStroke('#8d72d6',Math.max(4,W*.004))
+      }
+      if(characterFrame==='cafe'){
+        ctx.fillStyle='#efe4d2';ctx.fillRect(0,0,W,Math.max(58,W*.065));ctx.fillRect(0,H-Math.max(76,W*.085),W,Math.max(76,W*.085));
+        ctx.fillStyle='#4c3c2d';ctx.font='800 '+Math.round(W*.022)+'px Georgia';ctx.textAlign='center';ctx.fillText('PIA’S CAFE',W/2,Math.max(39,W*.044));
+        ctx.font='600 '+Math.round(W*.014)+'px monospace';ctx.fillText('MEMORIES · SERVED DAILY',W/2,H-20)
+      }
+      if(characterFrame==='strawberry'){
+        const bh=Math.max(45,W*.052);ctx.fillStyle='#ffe8ef';ctx.fillRect(0,0,W,bh);ctx.fillRect(0,H-bh,W,bh);
+        for(let i=0;i<9;i++){const x=W*(.06+i*.11),y=i%2?bh*.35:H-bh*.35;ctx.fillStyle='#e45f7f';ctx.beginPath();ctx.arc(x,y,W*.009,0,Math.PI*2);ctx.fill();ctx.fillStyle='#6ba271';ctx.fillRect(x-W*.002,y-W*.014,W*.004,W*.009)}
+        lineLabel('STRAWBERRY MILK CLUB',H-14,'center',.016,800);borderStroke('#e69ab0',Math.max(3,W*.0035))
+      }
+      if(characterFrame==='halloween'){
+        const bh=Math.max(50,W*.06);ctx.fillStyle='#21172a';ctx.fillRect(0,0,W,bh);ctx.fillRect(0,H-bh,W,bh);
+        ctx.fillStyle='#f29a39';ctx.font='800 '+Math.round(W*.022)+'px DM Sans';ctx.textAlign='center';ctx.fillText('SPOOKY PHOTO NIGHT',W/2,bh*.65);
+        for(let i=0;i<10;i++)star(W*(.05+i*.1),H-22,W*.007,i%2?'#f29a39':'#d7b4ef',null)
+      }
+      if(characterFrame==='holiday'){
+        const bh=Math.max(48,W*.055);ctx.fillStyle='#a22d3d';ctx.fillRect(0,0,W,bh);ctx.fillRect(0,H-bh,W,bh);
+        ctx.strokeStyle='#f4dfc5';ctx.lineWidth=Math.max(3,W*.004);ctx.strokeRect(W*.018,H*.012,W*.964,H*.955);
+        ctx.fillStyle='#f8eee3';ctx.font='700 '+Math.round(W*.02)+'px Georgia';ctx.textAlign='center';ctx.fillText('HOLIDAY MEMORIES',W/2,H-16)
+      }
       ctx.restore()
     }
     drawCharacterDecor();
-    const dark=frameColor.toLowerCase()==='#1d1d1d'||layoutMode==='film';ctx.fillStyle=dark?'#fff':'#1b1a18';ctx.textAlign='center';ctx.font='600 '+Math.max(28,Math.round(W*.027))+'px DM Sans, sans-serif';ctx.fillText(($('caption').value||'our little moment ♡').slice(0,40),W/2,H-45);ctx.font='500 '+Math.max(17,Math.round(W*.014))+'px DM Sans, sans-serif';ctx.globalAlpha=.7;ctx.fillText(new Date().toLocaleDateString(),W/2,H-18);ctx.globalAlpha=1;saveStyle();syncFloatingPreview();if(currentPhase===7)syncFinalCanvas()
+    drawAllStickers(ctx,W,H);
+    const dark=frameColor.toLowerCase()==='#1d1d1d'||layoutMode==='film';ctx.fillStyle=dark?'#fff':'#1b1a18';ctx.textAlign='center';ctx.font='600 '+Math.max(28,Math.round(W*.027))+'px DM Sans, sans-serif';ctx.fillText(($('caption').value||'our little moment ♡').slice(0,40),W/2,H-45);ctx.font='500 '+Math.max(17,Math.round(W*.014))+'px DM Sans, sans-serif';ctx.globalAlpha=.7;ctx.fillText(new Date().toLocaleDateString(),W/2,H-18);ctx.globalAlpha=1;saveStyle();syncFloatingPreview();if(currentPhase===8)syncFinalCanvas()
   }
 
   function canvasPoint(e){const c=$('stripCanvas'),r=c.getBoundingClientRect(),p=e.touches?e.touches[0]:e;return{x:(p.clientX-r.left)*(c.width/r.width),y:(p.clientY-r.top)*(c.height/r.height)}}
   function rectAt(pt){for(let i=frameRects.length-1;i>=0;i--){const r=frameRects[i];if(pt.x>=r.x&&pt.x<=r.x+r.w&&pt.y>=r.y&&pt.y<=r.y+r.h)return r}return null}
-  function startCanvasDrag(e){if(selected.size<1)return;const pt=canvasPoint(e),r=rectAt(pt);if(!r)return;activePhotoIndex=r.shotIndex;ensureCrop(activePhotoIndex);renderPhotoTabs();syncCropControls();dragState={startX:pt.x,startY:pt.y,panX:cropState[activePhotoIndex].panX,panY:cropState[activePhotoIndex].panY,rect:r};$('stripCanvas').classList.add('dragging');renderStrip();if(e.cancelable)e.preventDefault()}
-  function moveCanvasDrag(e){if(!dragState||activePhotoIndex===null)return;const pt=canvasPoint(e),c=ensureCrop(activePhotoIndex),dx=(pt.x-dragState.startX)/Math.max(1,dragState.rect.w),dy=(pt.y-dragState.startY)/Math.max(1,dragState.rect.h);c.panX=Math.max(-2,Math.min(2,dragState.panX+dx));c.panY=Math.max(-2,Math.min(2,dragState.panY+dy));renderStrip();if(e.cancelable)e.preventDefault()}
-  function endCanvasDrag(){dragState=null;$('stripCanvas').classList.remove('dragging')}
+  function startCanvasDrag(e){
+    if(selected.size<1)return;
+    const pt=canvasPoint(e),canvas=$('stripCanvas');
+    if(currentPhase===7){
+      const st=stickerAt(pt,canvas.width,canvas.height);
+      if(st){activeStickerId=st.id;syncStickerControls();stickerDrag={startX:pt.x,startY:pt.y,x:st.x,y:st.y};canvas.classList.add('dragging');renderStrip();if(e.cancelable)e.preventDefault()}
+      return
+    }
+    const r=rectAt(pt);if(!r)return;
+    activePhotoIndex=r.shotIndex;ensureCrop(activePhotoIndex);renderPhotoTabs();syncCropControls();
+    dragState={startX:pt.x,startY:pt.y,panX:cropState[activePhotoIndex].panX,panY:cropState[activePhotoIndex].panY,rect:r};
+    canvas.classList.add('dragging');renderStrip();if(e.cancelable)e.preventDefault()
+  }
+  function moveCanvasDrag(e){
+    const pt=canvasPoint(e),canvas=$('stripCanvas');
+    if(currentPhase===7&&stickerDrag){
+      const st=activeSticker();if(!st)return;
+      st.x=Math.max(0,Math.min(1,stickerDrag.x+(pt.x-stickerDrag.startX)/canvas.width));
+      st.y=Math.max(0,Math.min(1,stickerDrag.y+(pt.y-stickerDrag.startY)/canvas.height));
+      renderStrip();if(e.cancelable)e.preventDefault();return
+    }
+    if(!dragState||activePhotoIndex===null)return;
+    const c=ensureCrop(activePhotoIndex),dx=(pt.x-dragState.startX)/Math.max(1,dragState.rect.w),dy=(pt.y-dragState.startY)/Math.max(1,dragState.rect.h);
+    c.panX=Math.max(-2,Math.min(2,dragState.panX+dx));c.panY=Math.max(-2,Math.min(2,dragState.panY+dy));renderStrip();if(e.cancelable)e.preventDefault()
+  }
+  function endCanvasDrag(){dragState=null;stickerDrag=null;$('stripCanvas').classList.remove('dragging')}
+
 
   function syncFloatingPreview(){
     const src=$('stripCanvas'),dst=$('floatingCanvas'); if(!src||!dst||!src.width||!src.height)return;
@@ -1160,8 +1319,8 @@
   }
   function updateFloatingPreview(){const fp=$('floatingPreview');if(fp)fp.classList.remove('show')}
   async function getBlob(){await renderStrip();return await new Promise(r=>$('stripCanvas').toBlob(r,'image/png',1))}
-  async function downloadStrip(){const b=await getBlob(),a=document.createElement('a');a.download='pias-booth-'+Date.now()+'.png';a.href=URL.createObjectURL(b);a.click();URL.revokeObjectURL(a.href);goPhase(7)}
-  async function shareStrip(){const b=await getBlob(),f=new File([b],'pias-booth.png',{type:'image/png'});if(navigator.canShare?.({files:[f]})){await navigator.share({files:[f],title:"Pia's Booth"});goPhase(7)}else downloadStrip()}
+  async function downloadStrip(){const b=await getBlob(),a=document.createElement('a');a.download='pias-booth-'+Date.now()+'.png';a.href=URL.createObjectURL(b);a.click();URL.revokeObjectURL(a.href);goPhase(8)}
+  async function shareStrip(){const b=await getBlob(),f=new File([b],'pias-booth.png',{type:'image/png'});if(navigator.canShare?.({files:[f]})){await navigator.share({files:[f],title:"Pia's Booth"});goPhase(8)}else downloadStrip()}
   $('photoImport').addEventListener('change',async e=>{
     for(const f of [...e.target.files].slice(0,12-shots.length)){
       const data=await new Promise((resolve,reject)=>{const rd=new FileReader();rd.onload=()=>resolve(rd.result);rd.onerror=reject;rd.readAsDataURL(f)});
