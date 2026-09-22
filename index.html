@@ -119,16 +119,19 @@
     .floating-preview .fp-label{font-size:9px;font-weight:900;text-align:center;margin-bottom:4px;opacity:.65}
     .floating-preview canvas{display:block;width:100%;height:auto;max-height:30dvh;object-fit:contain;border-radius:8px}
     .character-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:8px}
-    .character{position:relative;overflow:hidden;border:2px solid var(--line);border-radius:14px;background:#fff;padding:48px 8px 9px;font-weight:800;font-size:11px;min-height:82px;text-align:left}
-    .character::before{content:"";position:absolute;left:8px;right:8px;top:8px;height:32px;border:1.5px solid #222;border-radius:7px;background:#f4f4f4}
-    .character[data-char="valentine"]::before{background:linear-gradient(135deg,#ffb6c9,#fff0f4 55%,#ff829f)}
-    .character[data-char="y2k"]::before{background:linear-gradient(90deg,#d7d5ff,#ffcce9,#cdeeff);box-shadow:inset 0 8px #fff8}
-    .character[data-char="scrapbook"]::before{background:repeating-linear-gradient(-35deg,#f6e8c8 0 9px,#fff8df 9px 18px)}
-    .character[data-char="mascot"]::before{background:radial-gradient(circle at 25% 55%,#ffe1ea 0 8px,transparent 9px),radial-gradient(circle at 55% 45%,#d8e7ff 0 9px,transparent 10px),#fff8e9}
-    .character[data-char="stickerpop"]::before{background:radial-gradient(circle at 20% 50%,#ff9fc3 0 7px,transparent 8px),radial-gradient(circle at 52% 40%,#a8dbff 0 8px,transparent 9px),radial-gradient(circle at 78% 60%,#ffe68e 0 7px,transparent 8px),#fff}
-    .character[data-char="retro"]::before{background:linear-gradient(#201c1c 0 8px,#e9dfd1 8px 100%)}
-    .character[data-char="softblue"]::before{background:linear-gradient(145deg,#edf2ff,#d7e1ff);border-style:dashed}
-    .character[data-char="editorial"]::before{background:linear-gradient(90deg,#111 0 25%,#fff 25% 50%,#111 50% 75%,#fff 75%)}
+    .character{position:relative;overflow:hidden;border:2px solid var(--line);border-radius:14px;background:#fff;padding:52px 9px 10px;font-weight:800;font-size:11px;min-height:88px;text-align:left}
+    .character::before{content:"";position:absolute;left:8px;right:8px;top:8px;height:36px;border:1.5px solid #222;border-radius:7px;background:#f8f7f4}
+    .character[data-char="pinkcheck"]::before{background:repeating-conic-gradient(#f7c8d7 0 25%,#fff1f5 0 50%) 0/16px 16px}
+    .character[data-char="bluegingham"]::before{background:linear-gradient(90deg,#cbdcfb88 50%,transparent 50%) 0/18px 18px,linear-gradient(#cbdcfb88 50%,#f5f8ff 50%) 0/18px 18px}
+    .character[data-char="mono"]::before{background:linear-gradient(90deg,#111 0 18%,#fff 18% 36%,#111 36% 54%,#fff 54% 72%,#111 72%)}
+    .character[data-char="newspaper"]::before{background:repeating-linear-gradient(#f5f1e8 0 6px,#d9d2c5 6px 7px)}
+    .character[data-char="passport"]::before{background:radial-gradient(circle at 22% 50%,transparent 0 7px,#526b9b 8px 9px,transparent 10px),linear-gradient(135deg,#e9eef9,#fff)}
+    .character[data-char="cinema"]::before{background:repeating-linear-gradient(90deg,#7d1626 0 13px,#f3d7ab 13px 26px)}
+    .character[data-char="picnic"]::before{background:repeating-conic-gradient(#f7d9df 0 25%,#fff6ec 0 50%) 0/18px 18px}
+    .character[data-char="birthday"]::before{background:radial-gradient(circle at 12% 25%,#ee9ab5 0 3px,transparent 4px),radial-gradient(circle at 42% 70%,#8fb8ed 0 3px,transparent 4px),radial-gradient(circle at 72% 30%,#f3ce72 0 3px,transparent 4px),#fff7ef}
+    .character[data-char="winter"]::before{background:radial-gradient(circle at 20% 30%,#fff 0 2px,transparent 3px),radial-gradient(circle at 70% 65%,#fff 0 2px,transparent 3px),#243453}
+    .character[data-char="lace"]::before{background:repeating-radial-gradient(circle at 8px 18px,#fff 0 5px,#eab9cb 6px 8px,transparent 9px 16px),#fff4f8}
+    .character[data-char="receipt"]::before{background:repeating-linear-gradient(#fbfaf4 0 7px,#ddd9ce 7px 8px)}
     .character.on{background:var(--rose2);box-shadow:inset 0 0 0 2px #111}
     .character small{display:block;font-weight:500;opacity:.62;margin-top:2px}
     @media(max-width:600px){.floating-preview{width:min(44vw,170px);top:8px;right:8px}.character-grid{grid-template-columns:repeat(2,1fr)}}
@@ -385,17 +388,20 @@
               <button class="template" data-layout="postcard" onclick="setLayout('postcard',this)">✉<br>Postcard</button>
               <button class="template" data-layout="square" onclick="setLayout('square',this)">□<br>Square</button>
             </div>
-            <label>Template style</label>
+            <label>Theme pack</label>
             <div class="character-grid" id="characterGrid">
-              <button class="character on" data-char="none" onclick="setCharacterFrame('none',this)">Clean studio<small>simple border</small></button>
-              <button class="character" data-char="valentine" onclick="setCharacterFrame('valentine',this)">Valentine doodle<small>hearts · bows · notes</small></button>
-              <button class="character" data-char="y2k" onclick="setCharacterFrame('y2k',this)">Y2K browser<small>pastel windows</small></button>
-              <button class="character" data-char="scrapbook" onclick="setCharacterFrame('scrapbook',this)">Scrapbook<small>tape · paper · doodles</small></button>
-              <button class="character" data-char="mascot" onclick="setCharacterFrame('mascot',this)">Cute mascot<small>original character art</small></button>
-              <button class="character" data-char="stickerpop" onclick="setCharacterFrame('stickerpop',this)">Sticker pop<small>flowers · bubbles · charms</small></button>
-              <button class="character" data-char="retro" onclick="setCharacterFrame('retro',this)">Retro print<small>film labels · date marks</small></button>
-              <button class="character" data-char="softblue" onclick="setCharacterFrame('softblue',this)">Blue memory<small>soft diary style</small></button>
-              <button class="character" data-char="editorial" onclick="setCharacterFrame('editorial',this)">Editorial B&W<small>clean fashion strip</small></button>
+              <button class="character on" data-char="none" onclick="setCharacterFrame('none',this)">Studio Clean<small>minimal Life4Cuts-inspired</small></button>
+              <button class="character" data-char="pinkcheck" onclick="setCharacterFrame('pinkcheck',this)">Pink Check<small>soft checkerboard border</small></button>
+              <button class="character" data-char="bluegingham" onclick="setCharacterFrame('bluegingham',this)">Blue Gingham<small>airy Korean booth pattern</small></button>
+              <button class="character" data-char="mono" onclick="setCharacterFrame('mono',this)">Mono Booth<small>black & white editorial</small></button>
+              <button class="character" data-char="newspaper" onclick="setCharacterFrame('newspaper',this)">Daily Edition<small>newspaper headline treatment</small></button>
+              <button class="character" data-char="passport" onclick="setCharacterFrame('passport',this)">Passport Club<small>travel stamp aesthetic</small></button>
+              <button class="character" data-char="cinema" onclick="setCharacterFrame('cinema',this)">Cinema Ticket<small>movie-ticket border & numbering</small></button>
+              <button class="character" data-char="picnic" onclick="setCharacterFrame('picnic',this)">Cherry Picnic<small>summer picnic pattern</small></button>
+              <button class="character" data-char="birthday" onclick="setCharacterFrame('birthday',this)">Birthday Club<small>confetti & party print</small></button>
+              <button class="character" data-char="winter" onclick="setCharacterFrame('winter',this)">Winter Night<small>navy stars & silver border</small></button>
+              <button class="character" data-char="lace" onclick="setCharacterFrame('lace',this)">Ribbon Lace<small>soft ribbon photo-strip style</small></button>
+              <button class="character" data-char="receipt" onclick="setCharacterFrame('receipt',this)">Photo Receipt<small>thermal print / timestamp</small></button>
             </div>
             <label>Frame color</label>
             <div class="swatches">
@@ -1042,50 +1048,99 @@
     function drawCharacterDecor(){
       if(characterFrame==='none')return;
       ctx.save();
-      const lw=Math.max(3,W*.003);ctx.lineWidth=lw;ctx.strokeStyle='#2b2727';
-      if(characterFrame==='valentine'){
-        ctx.fillStyle='#ffedf2';ctx.fillRect(0,0,W,Math.max(38,H*.035));ctx.fillRect(0,H-Math.max(95,H*.075),W,Math.max(95,H*.075));
-        for(let i=0;i<7;i++)heart(W*(.08+i*.14),H*.035+(i%2)*15,W*.018,i%2?'#ff7698':'#ffd0dc','#b83c5d');
-        heart(W*.09,H*.92,W*.038,'#ff9cb5','#b83c5d');heart(W*.91,H*.88,W*.03,'#fff','#b83c5d');
-        ctx.font='700 '+Math.round(W*.028)+'px DM Sans';ctx.fillStyle='#b83c5d';ctx.textAlign='left';ctx.fillText('LOVE NOTE',W*.14,H*.92);
-        ctx.beginPath();ctx.moveTo(W*.74,H*.91);ctx.quadraticCurveTo(W*.82,H*.86,W*.9,H*.92);ctx.strokeStyle='#d85e7c';ctx.stroke()
+      const edge=Math.max(5,W*.007),ink='#25211f';
+      const frameSafe=frameRects.length?frameRects:[];
+
+      function lineLabel(text,y,align='center',size=.021,weight=700){
+        ctx.fillStyle=ink;ctx.font=weight+' '+Math.round(W*size)+'px DM Sans';ctx.textAlign=align;
+        ctx.fillText(text,align==='left'?W*.05:align==='right'?W*.95:W/2,y)
       }
-      if(characterFrame==='y2k'){
-        frameRects.forEach((r,i)=>{ctx.strokeStyle=i%2?'#8e7ad7':'#ef8fbd';ctx.lineWidth=lw;ctx.strokeRect(r.x-8,r.y-22,r.w+16,r.h+30);ctx.fillStyle=i%2?'#d9d1ff':'#ffd7ea';ctx.fillRect(r.x-8,r.y-22,r.w+16,20);['#ff7f9f','#ffd86f','#79d2c4'].forEach((c,j)=>{ctx.fillStyle=c;ctx.beginPath();ctx.arc(r.x+5+j*15,r.y-12,4.5,0,Math.PI*2);ctx.fill()})});
-        star(W*.09,H*.08,W*.028,'#fff3a9','#8e7ad7');star(W*.9,H*.14,W*.02,'#d9efff','#8e7ad7');
-        ctx.fillStyle='#8e7ad7';ctx.font='700 '+Math.round(W*.025)+'px monospace';ctx.textAlign='center';ctx.fillText('memory.exe',W/2,H*.975)
+      function checker(c1,c2,cell=28){
+        ctx.save();ctx.globalAlpha=.9;
+        for(let y=0;y<H;y+=cell)for(let x=0;x<W;x+=cell){ctx.fillStyle=((x/cell+y/cell)%2)?c1:c2;ctx.fillRect(x,y,cell,cell)}
+        ctx.restore()
       }
-      if(characterFrame==='scrapbook'){
-        ctx.fillStyle='#efe0b7';[[.06,.03,.22,.035,-.12],[.72,.04,.2,.034,.1],[.08,.89,.18,.034,.08]].forEach(a=>{ctx.save();ctx.translate(W*a[0],H*a[1]);ctx.rotate(a[4]);ctx.globalAlpha=.8;ctx.fillRect(0,0,W*a[2],H*a[3]);ctx.restore()});
-        ctx.strokeStyle='#806f56';ctx.setLineDash([10,8]);ctx.strokeRect(W*.025,H*.02,W*.95,H*.93);ctx.setLineDash([]);
-        ctx.fillStyle='#705c45';ctx.font='700 '+Math.round(W*.024)+'px DM Sans';ctx.textAlign='left';ctx.fillText('today’s little memory',W*.08,H*.965);
-        for(let i=0;i<5;i++)star(W*(.72+i*.045),H*.95,W*.012,i%2?'#f3b5c4':'#b8d5ef','#705c45')
+      function borderStroke(color,width=edge){
+        ctx.strokeStyle=color;ctx.lineWidth=width;ctx.strokeRect(width/2,width/2,W-width,H-width)
       }
-      if(characterFrame==='mascot'){
-        drawMascot(W*.1,H*.08,'cat',W/900);drawMascot(W*.88,H*.1,'bunny',W/900);drawMascot(W*.12,H*.91,'bear',W/900);
-        ctx.strokeStyle='#e596ae';ctx.beginPath();ctx.arc(W*.88,H*.9,W*.035,0,Math.PI*2);ctx.stroke();
-        ctx.font='700 '+Math.round(W*.024)+'px DM Sans';ctx.fillStyle='#674b58';ctx.textAlign='right';ctx.fillText('best day club',W*.92,H*.96)
+      function dots(color,count=22){
+        ctx.fillStyle=color;
+        for(let i=0;i<count;i++){const x=(i*97%Math.max(1,W-50))+25,y=(i*163%Math.max(1,H-70))+35;ctx.beginPath();ctx.arc(x,y,Math.max(3,W*.004),0,Math.PI*2);ctx.fill()}
       }
-      if(characterFrame==='stickerpop'){
-        const dots=[['#ff9fc3',.08,.08],['#9dd8ff',.9,.08],['#ffe889',.12,.9],['#bde9ba',.88,.88]];
-        dots.forEach(([c,x,y],i)=>{ctx.fillStyle=c;ctx.beginPath();ctx.arc(W*x,H*y,W*(.035+i*.004),0,Math.PI*2);ctx.fill();star(W*x,H*y,W*.018,'#fff','#333')});
-        for(let i=0;i<6;i++){ctx.fillStyle=i%2?'#ffc8de':'#d8d0ff';ctx.beginPath();ctx.arc(W*(.22+i*.12),H*.035+(i%2)*10,W*.013,0,Math.PI*2);ctx.fill()}
-        ctx.font='800 '+Math.round(W*.025)+'px DM Sans';ctx.fillStyle='#302b2b';ctx.textAlign='center';ctx.fillText('SNAP • SMILE • KEEP',W/2,H*.97)
+
+      if(characterFrame==='pinkcheck'){
+        const band=Math.max(34,W*.045);ctx.save();ctx.beginPath();
+        ctx.rect(0,0,W,band);ctx.rect(0,H-band,W,band);ctx.clip();checker('#f3bfd0','#fff0f5',24);ctx.restore();
+        borderStroke('#d78aa3',Math.max(4,W*.005));lineLabel('PIA’S BOOTH',H-band*.28,'center',.018,800)
       }
-      if(characterFrame==='retro'){
-        ctx.strokeStyle='#1b1818';ctx.lineWidth=lw*1.3;ctx.strokeRect(W*.025,H*.018,W*.95,H*.94);
-        ctx.fillStyle='#1b1818';ctx.fillRect(0,0,W,H*.035);ctx.fillStyle='#e8dfd2';ctx.font='700 '+Math.round(W*.019)+'px monospace';ctx.textAlign='left';ctx.fillText('MAIDEN SOPHIA / FRAME 01',W*.04,H*.025);
-        ctx.fillStyle='#b5483e';ctx.font='700 '+Math.round(W*.022)+'px monospace';ctx.textAlign='right';ctx.fillText(new Date().toISOString().slice(0,10),W*.94,H*.975)
+
+      if(characterFrame==='bluegingham'){
+        const band=Math.max(38,W*.05);
+        ctx.fillStyle='#eaf1ff';ctx.fillRect(0,0,W,band);ctx.fillRect(0,H-band,W,band);
+        ctx.globalAlpha=.55;ctx.strokeStyle='#9eb8e9';ctx.lineWidth=Math.max(2,W*.0025);
+        for(let x=0;x<W;x+=28){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,band);ctx.moveTo(x,H-band);ctx.lineTo(x,H);ctx.stroke()}
+        for(let y=0;y<band;y+=14){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.moveTo(0,H-y);ctx.lineTo(W,H-y);ctx.stroke()}
+        ctx.globalAlpha=1;borderStroke('#8ea8da',Math.max(3,W*.004));lineLabel('little moments',H-14,'center',.017,700)
       }
-      if(characterFrame==='softblue'){
-        ctx.strokeStyle='#8f9fd5';ctx.setLineDash([7,7]);ctx.lineWidth=lw;ctx.strokeRect(W*.035,H*.025,W*.93,H*.91);ctx.setLineDash([]);
-        for(let i=0;i<6;i++)star(W*(.08+i*.17),H*(i%2?.06:.035),W*.014,i%2?'#d7e1ff':'#fff','#8f9fd5');
-        ctx.fillStyle='#7888bf';ctx.font='italic '+Math.round(W*.026)+'px Georgia';ctx.textAlign='center';ctx.fillText('memories, softly kept',W/2,H*.97)
+
+      if(characterFrame==='mono'){
+        ctx.fillStyle='#111';ctx.fillRect(0,0,W,Math.max(34,W*.042));ctx.fillRect(0,H-Math.max(64,W*.07),W,Math.max(64,W*.07));
+        ctx.fillStyle='#fff';ctx.font='800 '+Math.round(W*.021)+'px DM Sans';ctx.textAlign='left';ctx.fillText('PIA’S BOOTH',W*.045,Math.max(26,W*.03));
+        ctx.textAlign='right';ctx.fillText(String(new Date().getFullYear()),W*.95,H-Math.max(20,W*.022));
+        borderStroke('#111',Math.max(6,W*.008))
       }
-      if(characterFrame==='editorial'){
-        ctx.strokeStyle='#111';ctx.lineWidth=lw*2;ctx.strokeRect(W*.02,H*.014,W*.96,H*.95);
-        ctx.fillStyle='#111';ctx.font='700 '+Math.round(W*.027)+'px DM Sans';ctx.textAlign='left';ctx.fillText('PORTRAIT STUDY',W*.045,H*.045);
-        ctx.font='500 '+Math.round(W*.016)+'px DM Sans';ctx.fillText('MAIDEN SOPHIA · '+new Date().getFullYear(),W*.045,H*.972)
+
+      if(characterFrame==='newspaper'){
+        ctx.fillStyle='#f2ede3';ctx.fillRect(0,0,W,Math.max(70,W*.09));
+        ctx.strokeStyle='#24201d';ctx.lineWidth=Math.max(2,W*.002);ctx.beginPath();ctx.moveTo(W*.04,W*.095);ctx.lineTo(W*.96,W*.095);ctx.stroke();
+        ctx.fillStyle='#24201d';ctx.font='800 '+Math.round(W*.038)+'px Georgia';ctx.textAlign='center';ctx.fillText('THE DAILY PIA',W/2,Math.max(50,W*.058));
+        lineLabel(new Date().toLocaleDateString(),H-18,'center',.015,600);borderStroke('#24201d',Math.max(3,W*.003))
+      }
+
+      if(characterFrame==='passport'){
+        borderStroke('#526b9b',Math.max(6,W*.007));
+        ctx.strokeStyle='#526b9b';ctx.lineWidth=Math.max(3,W*.003);
+        [[.1,.08],[.87,.11],[.13,.91]].forEach(([x,y],i)=>{ctx.save();ctx.translate(W*x,H*y);ctx.rotate((i-1)*.15);ctx.strokeRect(-W*.055,-W*.026,W*.11,W*.052);ctx.font='700 '+Math.round(W*.012)+'px monospace';ctx.textAlign='center';ctx.fillStyle='#526b9b';ctx.fillText(i===1?'ARRIVAL':'PIA',0,4);ctx.restore()});
+        lineLabel('MEMORY PASSPORT',H-20,'center',.018,800)
+      }
+
+      if(characterFrame==='cinema'){
+        const band=Math.max(52,W*.065);ctx.fillStyle='#7d1626';ctx.fillRect(0,0,W,band);ctx.fillRect(0,H-band,W,band);
+        ctx.fillStyle='#f1d4a4';ctx.font='800 '+Math.round(W*.023)+'px monospace';ctx.textAlign='center';ctx.fillText('ADMIT TWO · PIA’S PHOTO CLUB',W/2,band*.65);
+        ctx.font='700 '+Math.round(W*.016)+'px monospace';ctx.fillText('NO. '+String(Date.now()).slice(-6),W/2,H-band*.35);
+        for(let y=band+18;y<H-band;y+=34){ctx.fillStyle='#7d1626';ctx.beginPath();ctx.arc(8,y,7,0,Math.PI*2);ctx.arc(W-8,y,7,0,Math.PI*2);ctx.fill()}
+      }
+
+      if(characterFrame==='picnic'){
+        const band=Math.max(35,W*.045);ctx.save();ctx.beginPath();ctx.rect(0,0,W,band);ctx.rect(0,H-band,W,band);ctx.clip();checker('#f2c9d2','#fff3e9',22);ctx.restore();
+        // redraw photo areas because this theme background pass occurs after photos; only margin bands remain visible.
+        borderStroke('#c97f91',Math.max(4,W*.005));lineLabel('CHERRY PICNIC CLUB',H-14,'center',.016,800)
+      }
+
+      if(characterFrame==='birthday'){
+        dots('#e89bb5',28);dots('#8baee6',21);dots('#f1c968',17);
+        ctx.fillStyle='#fff9efdd';ctx.fillRect(W*.27,8,W*.46,Math.max(34,W*.045));
+        lineLabel('BIRTHDAY PHOTO CLUB',Math.max(32,W*.038),'center',.018,800);borderStroke('#d99bad',Math.max(4,W*.004))
+      }
+
+      if(characterFrame==='winter'){
+        ctx.fillStyle='#243453';ctx.fillRect(0,0,W,Math.max(42,W*.052));ctx.fillRect(0,H-Math.max(66,W*.075),W,Math.max(66,W*.075));
+        ctx.fillStyle='#fff';for(let i=0;i<18;i++){const x=(i*83%(W-30))+15,y=i%2?20:H-28;ctx.beginPath();ctx.arc(x,y,Math.max(2,W*.0025),0,Math.PI*2);ctx.fill()}
+        ctx.fillStyle='#fff';ctx.font='700 '+Math.round(W*.019)+'px Georgia';ctx.textAlign='center';ctx.fillText('winter memories',W/2,H-18);borderStroke('#8da2c9',Math.max(4,W*.005))
+      }
+
+      if(characterFrame==='lace'){
+        const side=Math.max(26,W*.032);ctx.fillStyle='#f8dce7';ctx.fillRect(0,0,side,H);ctx.fillRect(W-side,0,side,H);
+        ctx.strokeStyle='#d597af';ctx.lineWidth=Math.max(2,W*.002);
+        for(let y=14;y<H;y+=22){ctx.beginPath();ctx.arc(side/2,y,side*.27,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.arc(W-side/2,y,side*.27,0,Math.PI*2);ctx.stroke()}
+        borderStroke('#d597af',Math.max(3,W*.003));lineLabel('with love, always',H-18,'center',.017,700)
+      }
+
+      if(characterFrame==='receipt'){
+        ctx.fillStyle='#f7f4ec';ctx.fillRect(0,0,W,Math.max(52,W*.06));ctx.fillRect(0,H-Math.max(90,W*.095),W,Math.max(90,W*.095));
+        ctx.strokeStyle='#b7b0a4';ctx.setLineDash([5,5]);ctx.lineWidth=Math.max(2,W*.002);ctx.beginPath();ctx.moveTo(W*.05,Math.max(55,W*.063));ctx.lineTo(W*.95,Math.max(55,W*.063));ctx.moveTo(W*.05,H-Math.max(94,W*.1));ctx.lineTo(W*.95,H-Math.max(94,W*.1));ctx.stroke();ctx.setLineDash([]);
+        ctx.fillStyle='#332f2a';ctx.font='700 '+Math.round(W*.018)+'px monospace';ctx.textAlign='center';ctx.fillText('PIA’S PHOTO RECEIPT',W/2,Math.max(36,W*.04));
+        ctx.font='600 '+Math.round(W*.014)+'px monospace';ctx.fillText(new Date().toLocaleString(),W/2,H-42);ctx.fillText('MEMORY TOTAL: PRICELESS',W/2,H-18)
       }
       ctx.restore()
     }
