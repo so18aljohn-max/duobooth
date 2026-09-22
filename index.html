@@ -506,7 +506,7 @@
           <h3 class="phase-title">Keep this one ♡</h3>
           <p class="phase-sub">Your finished frame is ready in high resolution.</p>
           <div class="save-card"><canvas id="finalCanvas" width="900" height="1500"></canvas></div>
-          <div class="phase-nav"><button class="btn" onclick="goPhase(7)">← Stickers</button><button class="btn primary" onclick="downloadStrip()">Download PNG</button><button class="btn secondary" onclick="shareStrip()">Share</button></div>
+          <div class="phase-nav"><button class="btn" onclick="goPhase(7)">← Stickers</button><button class="btn primary" onclick="downloadStrip()">Download PNG</button><button class="btn secondary" onclick="shareStrip()">Share</button><button class="btn secondary" onclick="restartBooth()">Do it again</button></div>
         </div>
       </div>
     </section>
@@ -825,6 +825,28 @@
     const src=$('stripCanvas'),dst=$('finalCanvas');if(!src||!dst)return;
     dst.width=src.width;dst.height=src.height;const x=dst.getContext('2d');x.clearRect(0,0,dst.width,dst.height);x.drawImage(src,0,0)
   }
+  function restartBooth(){
+    sessionCancelled=true;
+    sessionRunning=false;
+    shots=[];
+    selected.clear();
+    cropState={};
+    activePhotoIndex=null;
+    frameRects=[];
+    dragState=null;
+    stickers=[];
+    activeStickerId=null;
+    stickerDrag=null;
+    if($('shots'))$('shots').innerHTML='';
+    if($('photoTabs'))$('photoTabs').innerHTML='';
+    if($('activeStickerLabel'))$('activeStickerLabel').textContent='No sticker selected';
+    if($('stickerSize'))$('stickerSize').value=13;
+    if($('stickerRotation'))$('stickerRotation').value=0;
+    updateCaptureUI();
+    updateSessionProgress(0);
+    goPhase(1);
+  }
+
   function setSessionCount(n,el){
     sessionCount=n;
     document.querySelectorAll('.choice-btn').forEach(b=>b.classList.remove('on'));
