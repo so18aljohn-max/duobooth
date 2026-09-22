@@ -87,8 +87,55 @@
     .theme-pink{background:#f4c7d2}.theme-blue{background:#c5ddfa}.theme-cream{background:#fff4db}.theme-black{background:#1d1d1d}
     .footer{padding:42px 0 25px;font-size:13px;opacity:.7;text-align:center}
     .toast{position:fixed;right:18px;bottom:18px;background:#111;color:#fff;padding:12px 14px;border-radius:12px;display:none;max-width:320px;z-index:20}.toast.show{display:block}
-    @media(max-width:900px){.hero,.stage-wrap,.editor.active{grid-template-columns:1fr}.hero{padding-top:10px}.preview-card{max-width:560px}.stage{min-height:620px}.controls{order:-1}.room-grid{grid-template-columns:1fr}.shots{grid-template-columns:repeat(3,1fr)}.video-grid{grid-template-columns:1fr 1fr}}
-    @media(max-width:560px){.app{padding:13px}.nav{padding-bottom:8px}.brand{font-size:25px}.pill{display:none}h1{font-size:58px}.panel{padding:15px}.panel h2{font-size:34px}.stage{min-height:520px}.video-grid{grid-template-columns:1fr}.video-cell{height:50%;border-right:0;border-bottom:1px solid #ffffff3a}.video-cell:last-child{border-bottom:0}.pose{font-size:12px}.countdown{font-size:110px}}
+    .shutter{position:absolute;z-index:8;left:50%;bottom:64px;transform:translateX(-50%);width:66px;height:66px;border-radius:50%;border:3px solid #fff;background:#ffffff66;padding:5px;display:grid;place-items:center;box-shadow:0 3px 18px #0005;backdrop-filter:blur(5px)}
+    .shutter span{width:48px;height:48px;border-radius:50%;background:#fff;border:2px solid #111;display:block}
+    .shutter:active{transform:translateX(-50%) scale(.92)}
+    #stage.solo-stage .video-grid{grid-template-columns:1fr}
+    #stage.solo-stage .video-cell:last-child{display:none}
+    @media(max-width:900px){
+      .hero,.stage-wrap,.editor.active{grid-template-columns:1fr}
+      .hero{padding-top:10px}.preview-card{max-width:560px}
+      .stage{min-height:0;aspect-ratio:4/3}
+      .controls{order:0}.room-grid{grid-template-columns:1fr}.shots{grid-template-columns:repeat(3,1fr)}
+      .video-grid{grid-template-columns:1fr 1fr}
+      .editor.active{gap:14px}.strip-card{max-width:560px;width:100%;margin:auto}
+    }
+    @media(max-width:600px){
+      html,body{width:100%;max-width:100%;overflow-x:hidden}
+      body{min-height:100dvh}
+      .app{width:100%;max-width:100%;padding:10px}
+      .nav{padding:4px 2px 8px}.brand{font-size:24px}.pill{display:none}
+      h1{font-size:clamp(46px,15vw,64px);line-height:.92}
+      .hero{gap:16px;padding:14px 0 28px}.hero p{font-size:16px}
+      .preview-card{display:none}.section{padding:24px 0}
+      .panel{padding:12px;border-radius:16px;box-shadow:4px 4px 0 var(--line)}
+      .panel h2{font-size:31px}.room-grid{gap:12px}.card{padding:14px}
+      .input-row{display:grid;grid-template-columns:1fr}.input-row .btn{width:100%}
+      .stage-wrap{gap:12px}.stage{width:100%;aspect-ratio:3/4;min-height:0;border-radius:15px;box-shadow:4px 4px 0 var(--line)}
+      .video-grid{grid-template-columns:1fr;grid-template-rows:1fr 1fr}
+      .video-cell{height:auto;min-height:0;border-right:0;border-bottom:1px solid #ffffff3a}
+      .video-cell:last-child{border-bottom:0}
+      #stage.solo-stage .video-grid{grid-template-rows:1fr}
+      .controls{padding:12px;box-shadow:4px 4px 0 var(--line)}
+      .controls .btn{min-height:48px}.utility{min-height:44px}
+      .pose{font-size:11px;bottom:16px;max-width:86%;padding:7px 10px}
+      .shutter{bottom:52px;width:62px;height:62px}.shutter span{width:45px;height:45px}
+      .countdown{font-size:96px}.shots{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+      .shot{border-radius:10px}.editor.active{display:flex;flex-direction:column}
+      .strip-card,.editor-tools{width:100%;min-width:0}.editor-tools{padding:13px}
+      .template-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .swatches{gap:10px}.swatch{width:42px;height:42px}
+      .share-row{display:grid;grid-template-columns:1fr}.share-row .btn{width:100%}
+      input,select{width:100%;font-size:16px}
+      .toast{left:12px;right:12px;bottom:12px;max-width:none}
+      .stepbar{gap:6px}.stepchip{font-size:10px;padding:6px 8px}
+      .footer{padding:32px 12px 20px;line-height:1.5}
+    }
+    @media(max-width:380px){
+      .app{padding:7px}.panel{padding:9px}.template-grid,.filter-grid{grid-template-columns:1fr 1fr}
+      .stage{aspect-ratio:9/14}.shutter{bottom:48px}
+    }
   
     .stepbar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px}.stepchip{border:2px solid var(--line);border-radius:999px;background:#fff;padding:7px 11px;font-size:12px;font-weight:800}.stepchip.on{background:var(--yellow)}
     .template-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}.template{border:2px solid var(--line);border-radius:12px;background:#fff;padding:9px 7px;font-weight:800;font-size:12px;min-height:62px}.template.on{background:var(--yellow)}
@@ -110,7 +157,7 @@
       <div>
         <span class="eyebrow">portable · solo or together · works in your browser</span>
         <h1>One booth.<br>Any place.</h1>
-        <p>Use your phone or laptop as a portable photobooth. Shoot together or solo, choose your best four, then export classic strips, Polaroids, film frames, grids, stories, and more.</p>
+        <p>Use your phone or laptop as a portable photobooth. Shoot together or solo, choose one to four favorites, then export Polaroids, classic strips, film frames, grids, stories, and more.</p>
         <div class="actions">
           <button class="btn primary" onclick="scrollToStart()">Open the booth ♡</button>
           <button class="btn secondary" onclick="startSolo()">Try solo</button>
@@ -168,6 +215,7 @@
             <div class="stage-overlay"></div><div class="gridline" id="gridline"></div>
             <div class="countdown" id="countdown">3</div>
             <div class="flash" id="flash"></div>
+            <button class="shutter" id="stageShutter" onclick="captureOne()" aria-label="Take photo"><span></span></button>
             <div class="pose" id="pose">make half a heart toward the middle ♡</div>
           </div>
           <div class="controls">
@@ -190,7 +238,7 @@
           <div class="strip-card"><canvas id="stripCanvas" width="900" height="1500"></canvas></div>
           <div class="editor-tools">
             <h3 style="margin-top:0">Finish your frame</h3>
-            <p class="muted">Pick exactly four shots. Your last style is remembered on this device.</p>
+            <p class="muted">Choose 1–4 photos to edit. A single photo works perfectly with Polaroid and other frames. Your last style is remembered on this device.</p>
             <label>Layout</label>
             <div class="template-grid">
               <button class="template on" data-layout="classic" onclick="setLayout('classic',this)">▥<br>Classic 4-cut</button>
@@ -225,7 +273,7 @@
       </div>
     </section>
 
-    <footer class="footer">DuoBooth is an original prototype inspired by the idea of synchronized long-distance photobooths. It does not copy Angie branding or proprietary assets.</footer>
+    <footer class="footer">Dedicated to Sophia and her photobooth escapades. ♡</footer>
   </main>
   <div id="toast" class="toast"></div>
 
@@ -293,7 +341,7 @@
   }
 
   async function createRoom(){
-    soloMode=false; isHost=true; roomCode=randomCode();
+    soloMode=false; isHost=true; roomCode=randomCode(); $('stage').classList.remove('solo-stage');
     $('hostCode').style.display='block'; $('hostCode').innerHTML=`Room code: <b style="font-size:20px;letter-spacing:.12em">${roomCode}</b><br><span class="muted">Share this code with your partner.</span>`;
     $('roomLabel').textContent='Room '+roomCode+' · you are hosting'; showBooth();
     peer = new Peer('duobooth-'+roomCode.toLowerCase(), {debug:1}); setupPeerEvents();
@@ -302,7 +350,7 @@
 
   async function joinRoom(){
     const code=$('joinCode').value.trim().toUpperCase(); if(code.length<4){toast('Enter the room code');return}
-    soloMode=false; isHost=false; roomCode=code; $('joinStatus').textContent='Connecting…'; $('roomLabel').textContent='Room '+roomCode+' · joined'; showBooth();
+    soloMode=false; isHost=false; roomCode=code; $('stage').classList.remove('solo-stage'); $('joinStatus').textContent='Connecting…'; $('roomLabel').textContent='Room '+roomCode+' · joined'; showBooth();
     peer = new Peer(undefined,{debug:1}); setupPeerEvents();
     peer.on('open', async()=>{
       await enableCamera();
@@ -321,7 +369,7 @@
   function onRemoteStream(stream){ remoteStream=stream; $('remoteVideo').srcObject=stream; $('remoteEmpty').classList.add('hidden'); updateConnection(true,'Both cameras connected'); }
 
   async function startSolo(){
-    soloMode=true; isHost=true; roomCode='SOLO'; $('roomLabel').textContent='Solo booth'; showBooth(); updateConnection(true,'Solo mode');
+    soloMode=true; isHost=true; roomCode='SOLO'; $('stage').classList.add('solo-stage'); $('roomLabel').textContent='Solo booth'; showBooth(); updateConnection(true,'Solo mode');
     $('remoteEmpty').textContent='Solo mode — your photo will fill the strip'; await enableCamera();
   }
 
@@ -350,7 +398,7 @@
     $('pose').textContent=poses[poseIndex%poses.length];
     const wait=Math.max(0,startAt-Date.now()); await delay(wait);
     for(let n=seconds;n>=1;n--){ $('countdown').textContent=n; $('countdown').classList.add('show'); await delay(1000); }
-    $('countdown').textContent='♡'; await delay(90); $('flash').class.remove?.('on'); void $('flash').offsetWidth; $('flash').classList.add('on');
+    $('countdown').textContent='♡'; await delay(90); $('flash').classList.remove('on'); void $('flash').offsetWidth; $('flash').classList.add('on');
     if(capture) takeCompositeShot();
     await delay(220); $('countdown').classList.remove('show');
   }
@@ -367,19 +415,21 @@
     else{ drawVideoCover(ctx,$('localVideo'),0,0,600,800); drawVideoCover(ctx,$('remoteVideo'),600,0,600,800); }
     // seam
     if(!soloMode && $('remoteVideo').srcObject){ctx.fillStyle='rgba(255,255,255,.55)';ctx.fillRect(598,0,4,800)}
-    const data=c.toDataURL('image/jpeg',.9); shots.push(data); renderShots();
+    const data=c.toDataURL('image/jpeg',.92); shots.push(data); if(selected.size===0) selected.add(shots.length-1); renderShots(); setStep(2);
   }
 
   function renderShots(){
     const wrap=$('shots'); wrap.innerHTML='';
     shots.forEach((src,i)=>{ const el=document.createElement('div'); el.className='shot'+(selected.has(i)?' selected':''); el.onclick=()=>toggleSelect(i); el.innerHTML=`<img src="${src}" alt="shot ${i+1}"><span class="num">${i+1}</span>`; wrap.appendChild(el); });
-    if(shots.length){ $('boothStatus').textContent=`${shots.length} photo${shots.length===1?'':'s'} captured. Select four for your strip.`; }
-    if(selected.size===4){ $('editor').classList.add('active'); setStep(3); renderStrip(); }
+    if(shots.length){ $('boothStatus').textContent=`${shots.length} photo${shots.length===1?'':'s'} captured. Tap any 1–4 photos to edit.`; }
+    if(selected.size>=1){ $('editor').classList.add('active'); setStep(3); renderStrip(); }
+    else $('editor').classList.remove('active');
   }
 
   function toggleSelect(i){
-    if(selected.has(i)) selected.delete(i); else { if(selected.size>=4){toast('Choose exactly four — deselect one first');return;} selected.add(i); }
-    renderShots(); if(selected.size<4) $('editor').classList.remove('active');
+    if(selected.has(i)) selected.delete(i);
+    else { if(selected.size>=4){toast('You can combine up to four photos.');return;} selected.add(i); }
+    renderShots();
   }
 
   function resetShots(){ shots=[];selected.clear();$('shots').innerHTML='';$('editor').classList.remove('active'); setStep(1); }
@@ -441,24 +491,58 @@
     }ctx.putImageData(im,0,0)
   }
   async function renderStrip(){
-    if(selected.size!==4)return;const canvas=$('stripCanvas'),ctx=canvas.getContext('2d'),picks=[...selected].sort((a,b)=>a-b),imgs=[];
+    const count=selected.size;
+    if(count<1)return;
+    const canvas=$('stripCanvas'),ctx=canvas.getContext('2d'),picks=[...selected].sort((a,b)=>a-b),imgs=[];
     for(const p of picks){const im=new Image();im.src=shots[p];await im.decode();imgs.push(im)}
-    let W=900,H=1500;if(['grid','square'].includes(layoutMode)){W=1200;H=1200}if(layoutMode==='wide'){W=1600;H=900}if(layoutMode==='story'){W=1080;H=1920}if(layoutMode==='postcard'){W=1600;H=1050}if(layoutMode==='double'){W=1500;H=1500}if(layoutMode==='polaroid'){W=1100;H=1400}if(layoutMode==='film'){W=1000;H=1600}canvas.width=W;canvas.height=H;ctx.fillStyle=frameColor;ctx.fillRect(0,0,W,H);const gap=Number($('frameGap')?.value)||20;
-    async function draw(im,x,y,w,h,r=12){const tmp=document.createElement('canvas');tmp.width=Math.round(w);tmp.height=Math.round(h);const tx=tmp.getContext('2d'),ratio=Math.max(w/im.width,h/im.height),dw=im.width*ratio,dh=im.height*ratio;tx.drawImage(im,(w-dw)/2,(h-dh)/2,dw,dh);applyFilter(tx,$('filterSelect').value,tmp.width,tmp.height);ctx.save();ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.clip();ctx.drawImage(tmp,x,y,w,h);ctx.restore()}
-    if(layoutMode==='classic'){const pad=48,cap=120,h=(H-pad*2-cap-gap*3)/4;for(let i=0;i<4;i++)await draw(imgs[i],pad,pad+i*(h+gap),W-pad*2,h)}
-    if(layoutMode==='double'){const sw=(W-gap*3)/2,ph=(H-150-gap*5)/4;for(let col=0;col<2;col++)for(let i=0;i<4;i++)await draw(imgs[i],gap+(sw+gap)*col,gap+i*(ph+gap),sw,ph,8)}
-    if(['grid','square'].includes(layoutMode)){const pad=45,sz=(W-pad*2-gap)/2;for(let i=0;i<4;i++)await draw(imgs[i],pad+(i%2)*(sz+gap),pad+Math.floor(i/2)*(sz+gap),sz,sz,14)}
-    if(layoutMode==='polaroid'){ctx.fillStyle='#fff';ctx.fillRect(75,55,W-150,H-150);const pad=115,ph=205;for(let i=0;i<4;i++)await draw(imgs[i],pad,pad+i*(ph+gap),W-pad*2,ph,4)}
-    if(layoutMode==='film'){ctx.fillStyle='#171717';ctx.fillRect(0,0,W,H);for(let y=22;y<H-22;y+=45){ctx.fillStyle='#f7efe2';ctx.fillRect(18,y,22,25);ctx.fillRect(W-40,y,22,25)}const pad=62,ph=(H-124-gap*3-90)/4;for(let i=0;i<4;i++)await draw(imgs[i],pad,62+i*(ph+gap),W-pad*2,ph,2)}
-    if(layoutMode==='story'){const pad=60,ph=(H-250-gap*3)/4;for(let i=0;i<4;i++)await draw(imgs[i],pad,80+i*(ph+gap),W-pad*2,ph,18)}
-    if(layoutMode==='wide'){const pad=38,pw=(W-pad*2-gap)/2,ph=(H-pad*2-gap-95)/2;for(let i=0;i<4;i++)await draw(imgs[i],pad+(i%2)*(pw+gap),pad+Math.floor(i/2)*(ph+gap),pw,ph,16)}
-    if(layoutMode==='postcard'){const pad=45,pw=980,ph=H-pad*2;await draw(imgs[0],pad,pad,pw,ph,18);for(let i=1;i<4;i++)await draw(imgs[i],pw+pad+gap,pad+(i-1)*((ph-gap*2)/3+gap),W-pw-pad*2-gap,(ph-gap*2)/3,10)}
+    let W=900,H=1500;
+    if(['grid','square'].includes(layoutMode)){W=1200;H=1200}
+    if(layoutMode==='wide'){W=1600;H=900}
+    if(layoutMode==='story'){W=1080;H=1920}
+    if(layoutMode==='postcard'){W=1600;H=1050}
+    if(layoutMode==='double'){W=1500;H=1500}
+    if(layoutMode==='polaroid'){W=count===1?1100:1200;H=count===1?1350:1450}
+    if(layoutMode==='film'){W=1000;H=1600}
+    canvas.width=W;canvas.height=H;ctx.fillStyle=frameColor;ctx.fillRect(0,0,W,H);
+    const gap=Number($('frameGap')?.value)||20;
+    async function draw(im,x,y,w,h,r=12){const tmp=document.createElement('canvas');tmp.width=Math.max(1,Math.round(w));tmp.height=Math.max(1,Math.round(h));const tx=tmp.getContext('2d'),ratio=Math.max(w/im.width,h/im.height),dw=im.width*ratio,dh=im.height*ratio;tx.drawImage(im,(w-dw)/2,(h-dh)/2,dw,dh);applyFilter(tx,$('filterSelect').value,tmp.width,tmp.height);ctx.save();ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.clip();ctx.drawImage(tmp,x,y,w,h);ctx.restore()}
+    async function autoGrid(pad=45,bottom=120){
+      if(count===1){await draw(imgs[0],pad,pad,W-pad*2,H-pad-bottom,16);return}
+      if(count===2){const h=(H-pad*2-bottom-gap)/2;for(let i=0;i<2;i++)await draw(imgs[i],pad,pad+i*(h+gap),W-pad*2,h,16);return}
+      const cols=2,rows=2,pw=(W-pad*2-gap)/2,ph=(H-pad*2-bottom-gap)/2;
+      for(let i=0;i<count;i++)await draw(imgs[i],pad+(i%cols)*(pw+gap),pad+Math.floor(i/cols)*(ph+gap),pw,ph,14)
+    }
+    if(layoutMode==='classic'){const pad=48,cap=120,h=(H-pad*2-cap-gap*(count-1))/count;for(let i=0;i<count;i++)await draw(imgs[i],pad,pad+i*(h+gap),W-pad*2,h,14)}
+    if(layoutMode==='double'){
+      if(count===1){const sw=(W-gap*3)/2;for(let col=0;col<2;col++)await draw(imgs[0],gap+(sw+gap)*col,gap,sw,H-150-gap,10)}
+      else{const sw=(W-gap*3)/2,ph=(H-150-gap*(count+1))/count;for(let col=0;col<2;col++)for(let i=0;i<count;i++)await draw(imgs[i],gap+(sw+gap)*col,gap+i*(ph+gap),sw,ph,8)}
+    }
+    if(['grid','square'].includes(layoutMode)) await autoGrid(45,115);
+    if(layoutMode==='polaroid'){
+      ctx.fillStyle='#fff';ctx.fillRect(70,50,W-140,H-135);
+      if(count===1){await draw(imgs[0],105,90,W-210,H-310,4)}
+      else{const pad=110,available=H-260,ph=(available-gap*(count-1))/count;for(let i=0;i<count;i++)await draw(imgs[i],pad,85+i*(ph+gap),W-pad*2,ph,4)}
+    }
+    if(layoutMode==='film'){
+      ctx.fillStyle='#171717';ctx.fillRect(0,0,W,H);for(let y=22;y<H-22;y+=45){ctx.fillStyle='#f7efe2';ctx.fillRect(18,y,22,25);ctx.fillRect(W-40,y,22,25)}
+      const pad=62,ph=(H-124-gap*(count-1)-90)/count;for(let i=0;i<count;i++)await draw(imgs[i],pad,62+i*(ph+gap),W-pad*2,ph,2)
+    }
+    if(layoutMode==='story'){const pad=60,ph=(H-250-gap*(count-1))/count;for(let i=0;i<count;i++)await draw(imgs[i],pad,80+i*(ph+gap),W-pad*2,ph,18)}
+    if(layoutMode==='wide'){
+      if(count===1)await draw(imgs[0],38,38,W-76,H-170,18);
+      else{const cols=count===2?2:2,rows=Math.ceil(count/2),pw=(W-76-gap)/2,ph=(H-76-95-gap*(rows-1))/rows;for(let i=0;i<count;i++)await draw(imgs[i],38+(i%2)*(pw+gap),38+Math.floor(i/2)*(ph+gap),pw,ph,16)}
+    }
+    if(layoutMode==='postcard'){
+      const pad=45;
+      if(count===1)await draw(imgs[0],pad,pad,W-pad*2,H-pad*2-105,18);
+      else{const pw=Math.round(W*.61),ph=H-pad*2;await draw(imgs[0],pad,pad,pw,ph,18);const side=count-1,sh=(ph-gap*(side-1))/side;for(let i=1;i<count;i++)await draw(imgs[i],pw+pad+gap,pad+(i-1)*(sh+gap),W-pw-pad*2-gap,sh,10)}
+    }
     const dark=frameColor.toLowerCase()==='#1d1d1d'||layoutMode==='film';ctx.fillStyle=dark?'#fff':'#1b1a18';ctx.textAlign='center';ctx.font='600 '+Math.max(28,Math.round(W*.027))+'px DM Sans, sans-serif';ctx.fillText(($('caption').value||'our little moment ♡').slice(0,40),W/2,H-45);ctx.font='500 '+Math.max(17,Math.round(W*.014))+'px DM Sans, sans-serif';ctx.globalAlpha=.7;ctx.fillText(new Date().toLocaleDateString(),W/2,H-18);ctx.globalAlpha=1;saveStyle()
   }
   async function getBlob(){await renderStrip();return await new Promise(r=>$('stripCanvas').toBlob(r,'image/png',1))}
   async function downloadStrip(){const b=await getBlob(),a=document.createElement('a');a.download='duobooth-'+Date.now()+'.png';a.href=URL.createObjectURL(b);a.click();URL.revokeObjectURL(a.href);setStep(4)}
   async function shareStrip(){const b=await getBlob(),f=new File([b],'duobooth.png',{type:'image/png'});if(navigator.canShare?.({files:[f]})){await navigator.share({files:[f],title:'DuoBooth'});setStep(4)}else downloadStrip()}
-  $('photoImport').addEventListener('change',async e=>{for(const f of [...e.target.files].slice(0,12-shots.length)){const u=URL.createObjectURL(f),im=new Image();im.src=u;await im.decode();const c=document.createElement('canvas');c.width=1200;c.height=800;const x=c.getContext('2d'),r=Math.max(c.width/im.width,c.height/im.height),dw=im.width*r,dh=im.height*r;x.drawImage(im,(c.width-dw)/2,(c.height-dh)/2,dw,dh);shots.push(c.toDataURL('image/jpeg',.92));URL.revokeObjectURL(u)}renderShots();setStep(2)});
+  $('photoImport').addEventListener('change',async e=>{for(const f of [...e.target.files].slice(0,12-shots.length)){const u=URL.createObjectURL(f),im=new Image();im.src=u;await im.decode();const c=document.createElement('canvas');c.width=1200;c.height=800;const x=c.getContext('2d'),r=Math.max(c.width/im.width,c.height/im.height),dw=im.width*r,dh=im.height*r;x.drawImage(im,(c.width-dw)/2,(c.height-dh)/2,dw,dh);shots.push(c.toDataURL('image/jpeg',.92)); if(selected.size===0) selected.add(shots.length-1); URL.revokeObjectURL(u)}renderShots();setStep(2)});
   window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('installBtn').style.display='inline-block'});$('installBtn').onclick=async()=>{if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('installBtn').style.display='none'}};
   if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
   loadStyle();initFilters();
