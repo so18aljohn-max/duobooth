@@ -208,6 +208,7 @@
     .camera-power .power-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#999;margin-right:7px;vertical-align:middle}
     .camera-power.on .power-dot{background:#55bd69}
     .camera-power.off .power-dot{background:#d85d72}
+    .camera-status{display:inline-flex;align-items:center;justify-content:center;margin:0 auto 10px;padding:6px 10px;border-radius:999px;background:#f5f1f1;font-size:12px;font-weight:800;min-height:30px}
     .setup-card{border:2px solid var(--line);border-radius:18px;background:#fff;padding:18px;box-shadow:4px 4px 0 rgba(27,26,24,.7);text-align:center}
     .setup-card>label{display:block;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;text-align:center}
     .choice-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:520px;margin:0 auto}
@@ -316,6 +317,7 @@
             </div>
             <div class="setup-card">
               <label>Camera</label>
+              <div class="camera-status" id="cameraStatus">Camera is starting…</div>
               <div class="utility-grid">
                 <button class="utility camera-power on" id="cameraPowerBtn" onclick="toggleCameraPower()"><span class="power-dot"></span>Camera on</button>
                 <button class="utility on" id="mirrorBtn" onclick="toggleMirror()">Mirror on</button>
@@ -324,7 +326,7 @@
               </div>
             </div>
           </div>
-          <div class="phase-nav setup-start-row"><button class="btn primary" onclick="beginAutoSession()">Start session ♡</button></div>
+          <div class="phase-nav setup-start-row"><button class="btn primary" id="startSessionBtn" onclick="beginAutoSession()">Start session ♡</button></div>
         </div>
 
         <div id="capturePhase" class="phase-section phase-hidden">
@@ -479,6 +481,13 @@
 
   const $ = id => document.getElementById(id);
   const delay = ms => new Promise(r => setTimeout(r, ms));
+  function setCameraStatus(text){const e=$('cameraStatus');if(e)e.textContent=text}
+  function setLegacyStatus(text){const e=$('boothStatus'));if(e)e.textContent=text}
+  function updateConnection(ok,text){
+    const dot=$('connectionDot'),label=$('connectionText');
+    if(dot)dot.classList.toggle('ok',ok);
+    if(label)label.textContent=text;
+  }
 
   function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2600); }
   function randomCode(){ return Math.random().toString(36).replace(/[^a-z]/g,'').slice(0,6).toUpperCase().padEnd(6,'X'); }
@@ -502,53 +511,71 @@
     $('start') && ($('start').style.display='none');
     window.scrollTo({top:0,left:0,behavior:'smooth'});
   }
-  function updateConnection(ok, text){ $('connectionDot').classList.toggle('ok',ok); $('connectionText').textContent=text; }
 
   async function enableCamera(){
     try{
       if(!navigator.mediaDevices?.getUserMedia)throw new Error('Camera access is not supported in this browser');
-      if(localStream)localStream.getTracks().forEach(t=>t.stop());
+      setCameraStatus('Starting camera…');
+      if(localStream){localStream.getTracks().forEach(t=>t.stop());localStream=null}
       const attempts=[
         {video:{facingMode:{ideal:cameraFacing},width:{ideal:1920},height:{ideal:1080},aspectRatio:{ideal:16/9}},audio:false},
         {video:{facingMode:{ideal:cameraFacing},width:{ideal:1280},height:{ideal:720}},audio:false},
-        {video:{facingMode:cameraFacing},audio:false},
+        {video:{facingMode:{ideal:cameraFacing}},audio:false},
         {video:true,audio:false}
       ];
       let lastErr=null;
       for(const constraints of attempts){
-        try{localStream=await navigator.mediaDevices.getUserMedia(constraints);break}catch(e){lastErr=e}
+        try{localStream=await navigator.mediaDevices.getUserMedia(constraints);if(localStream)break}
+        catch(e){lastErr=e}
       }
       if(!localStream)throw lastErr||new Error('Unable to open camera');
-      const video=$('localVideo');video.srcObject=localStream;video.setAttribute('playsinline','');video.muted=true;
+
+      const video=$('localVideo');
+      if(!video)throw new Error('Camera preview is unavailable');
+      video.srcObject=localStream;video.setAttribute('playsinline','');video.muted=true;
       try{await video.play()}catch{}
-      $('localEmpty').classList.add('hidden');
-      const track=localStream.getVideoTracks()[0],settings=track?.getSettings?.()||{};
+      if($('localEmpty'))$('localEmpty').classList.add('hidden');
+
+      const track=localStream.getVideoTracks()[0];
+      const settings=track?.getSettings?.()||{};
       if(settings.facingMode)cameraFacing=settings.facingMode==='environment'?'environment':'user';
       const isFront=cameraFacing==='user';
       video.style.transform=(isFront&&mirrorMode)?'scaleX(-1)':'none';
+
       if($('mirrorBtn')){
         $('mirrorBtn').disabled=!isFront;
         $('mirrorBtn').textContent=isFront?(mirrorMode?'Mirror on':'Mirror off'):'Mirror n/a';
         $('mirrorBtn').classList.toggle('on',isFront&&mirrorMode);
       }
       if($('cameraFacingBtn'))$('cameraFacingBtn').textContent=isFront?'Front camera':'Rear camera';
-      const size=settings.width&&settings.height?` · ${settings.width}×${settings.height}`:'';
-      $('boothStatus').textContent=(isFront?'Front':'Rear')+' camera ready'+size+'.';
-      if(dataConn?.open&&!isHost)callHost();
+
       cameraEnabled=true;
       if($('cameraPowerBtn')){
         $('cameraPowerBtn').classList.add('on');$('cameraPowerBtn').classList.remove('off');
         $('cameraPowerBtn').innerHTML='<span class="power-dot"></span>Camera on';
       }
+
+      const size=settings.width&&settings.height?' · '+settings.width+'×'+settings.height:'';
+      setCameraStatus((isFront?'Front':'Rear')+' camera ready'+size);
+      setLegacyStatus((isFront?'Front':'Rear')+' camera ready'+size+'.');
+      if(dataConn?.open&&!isHost)callHost();
       toast((isFront?'Front':'Rear')+' camera ready');
+      return true;
     }catch(e){
-      $('boothStatus').textContent='Camera permission failed: '+e.message;
+      localStream=null;cameraEnabled=false;
+      setCameraStatus('Camera unavailable');
+      setLegacyStatus('Camera permission failed: '+e.message);
+      if($('cameraPowerBtn')){
+        $('cameraPowerBtn').classList.remove('on');$('cameraPowerBtn').classList.add('off');
+        $('cameraPowerBtn').innerHTML='<span class="power-dot"></span>Camera off';
+      }
       toast('Camera access failed. Check browser camera permissions.');
+      return false;
     }
   }
 
   function setupPeerEvents(){
-    peer.on('error', err => { $('boothStatus').textContent='Connection error: '+err.type; toast('Connection error'); });
+    peer.on('error', err => { setLegacyStatus('Connection error: '+err.type); toast('Connection error'); });
     peer.on('connection', conn => {
       if(!isHost) return;
       dataConn = conn; setupDataConn();
@@ -600,7 +627,13 @@
   function onRemoteStream(stream){ remoteStream=stream; $('remoteVideo').srcObject=stream; $('remoteEmpty').classList.add('hidden'); updateConnection(true,'Both cameras connected'); }
 
   async function startSolo(){
-    soloMode=true;isHost=true;roomCode='LOCAL';cameraEnabled=true;$('stage').classList.add('solo-stage');$('roomLabel').textContent='In-person photobooth';showBooth();updateConnection(true,'In-person booth');$('remoteEmpty').textContent='In-person mode';await enableCamera();await goPhase(1);
+    soloMode=true;isHost=true;roomCode='LOCAL';cameraEnabled=true;
+    if($('stage'))$('stage').classList.add('solo-stage');
+    if($('roomLabel'))$('roomLabel').textContent='In-person photobooth';
+    showBooth();updateConnection(true,'In-person booth');
+    if($('remoteEmpty'))$('remoteEmpty').textContent='In-person mode';
+    await goPhase(1);
+    await enableCamera();
   }
 
   async function startSession(){return beginAutoSession()}
@@ -649,7 +682,8 @@
   }
 
   function renderShots(){
-    const wrap=$('shots');wrap.innerHTML='';
+    const wrap=$('shots');if(!wrap){updateCaptureUI();return}
+    wrap.innerHTML='';
     shots.forEach((src,i)=>{
       const el=document.createElement('div');
       el.className='shot'+(selected.has(i)?' selected':'')+(activePhotoIndex===i?' active-edit':'');
@@ -660,7 +694,7 @@
       if(rm)rm.onclick=e=>{e.stopPropagation();removeSelectedPhoto(i)};
       wrap.appendChild(el);
     });
-    if(shots.length&&$('boothStatus'))$('boothStatus').textContent=`${shots.length} photo${shots.length===1?'':'s'} captured.`;
+    if(shots.length)setLegacyStatus(shots.length+' photo'+(shots.length===1?'':'s')+' captured.');
     if(selected.size>=1){
       if(activePhotoIndex===null||!selected.has(activePhotoIndex))activePhotoIndex=[...selected][0];
       renderPhotoTabs();syncCropControls();renderStrip();
@@ -764,35 +798,55 @@
   }
   function cancelAutoSession(){sessionCancelled=true;sessionRunning=false;toast('Session cancelled');goPhase(1)}
   async function beginAutoSession(){
-    if(sessionRunning)return;
-    if(!localStream){toast('Turning camera on…');await enableCamera();if(!localStream)return}
-    if(!soloMode&&!isHost){toast('The host starts the shared session');return}
-    sessionRunning=true;sessionCancelled=false;
-    shots=[];selected.clear();cropState={};activePhotoIndex=null;frameRects=[];
-    if($('shots'))$('shots').innerHTML='';
-    updateCaptureUI();updateSessionProgress(0);
-    await goPhase(2);await delay(350);
+    if(sessionRunning){toast('Session is already starting.');return}
+    const startBtn=$('startSessionBtn');
+    if(startBtn){startBtn.disabled=true;startBtn.textContent='Starting…'}
     try{
+      if(!localStream){
+        const opened=await enableCamera();
+        if(!opened||!localStream)return;
+      }
+      if(!soloMode&&!isHost){toast('The host starts the shared session');return}
+
+      const video=$('localVideo');
+      if(video && (!video.videoWidth||video.readyState<2)){
+        setCameraStatus('Preparing camera…');
+        await Promise.race([
+          new Promise(resolve=>video.addEventListener('loadeddata',resolve,{once:true})),
+          delay(1500)
+        ]);
+      }
+      if(!video?.videoWidth){toast('Camera is not ready yet. Try Start session again.');return}
+
+      sessionRunning=true;sessionCancelled=false;
+      shots=[];selected.clear();cropState={};activePhotoIndex=null;frameRects=[];
+      if($('shots'))$('shots').innerHTML='';
+      updateCaptureUI();updateSessionProgress(0);
+      await goPhase(2);
+      await delay(500);
+
       for(let i=0;i<sessionCount;i++){
         if(sessionCancelled)break;
         updateSessionProgress(i);
         const poseIndex=i%poses.length;
         const seconds=Number($('delaySelect')?.value||0);
-        const startAt=Date.now()+(seconds===0?100:450);
+        const startAt=Date.now()+(seconds===0?150:500);
         if(dataConn?.open)dataConn.send({type:'countdown',startAt,delay:seconds,poseIndex});
         await runCountdownAt(startAt,seconds,poseIndex,true);
         if(sessionCancelled)break;
         updateSessionProgress(i+1);
-        if(i<sessionCount-1)await delay(seconds===0?700:550);
+        if(i<sessionCount-1)await delay(seconds===0?750:600);
       }
+
       if(dataConn?.open)dataConn.send({type:'sessionDone'});
       if(!sessionCancelled&&shots.length>0)await goPhase(3);
     }catch(err){
       console.error(err);
-      toast('The session hit an error. You can retry without losing the camera.');
+      toast('Capture session stopped unexpectedly. Please retry.');
       await goPhase(1);
     }finally{
       sessionRunning=false;
+      if(startBtn){startBtn.disabled=false;startBtn.textContent='Start session ♡'}
     }
   }
   async function toggleCameraPower(){
@@ -805,7 +859,7 @@
         $('cameraPowerBtn').classList.remove('on');$('cameraPowerBtn').classList.add('off');
         $('cameraPowerBtn').innerHTML='<span class="power-dot"></span>Camera off';
       }
-      toast('Camera off');
+      setCameraStatus('Camera off');toast('Camera off');
       return;
     }
     await enableCamera();
