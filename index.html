@@ -482,11 +482,9 @@
   const $ = id => document.getElementById(id);
   const delay = ms => new Promise(r => setTimeout(r, ms));
   function setCameraStatus(text){const e=$('cameraStatus');if(e)e.textContent=text}
-  function setLegacyStatus(text){const e=$('boothStatus');if(e)e.textContent=text}
+  function setLegacyStatus(text){}
   function updateConnection(ok,text){
-    const dot=$('connectionDot'),label=$('connectionText');
-    if(dot)dot.classList.toggle('ok',ok);
-    if(label)label.textContent=text;
+    if($('roomLabel')&&text)$('roomLabel').dataset.connection=text;
   }
 
   function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2600); }
@@ -797,9 +795,6 @@
     if($('captureProgressFill'))$('captureProgressFill').style.width=((done/sessionCount)*100)+'%';
   }
   function updateCaptureUI(){
-    const count=shots.length;
-    if($('captureCount'))$('captureCount').textContent=count+' photo'+(count===1?'':'s')+' captured';
-    if($('toSelectBtn'))$('toSelectBtn').disabled=count===0;
     if($('toFrameBtn'))$('toFrameBtn').disabled=selected.size===0;
   }
   function cancelAutoSession(){sessionCancelled=true;sessionRunning=false;toast('Session cancelled');goPhase(1)}
