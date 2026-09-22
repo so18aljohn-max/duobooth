@@ -24,6 +24,13 @@
     button,input,select{font:inherit}
     button{cursor:pointer}
     .app{max-width:1180px;margin:0 auto;padding:20px}
+    .app.booth-mode{max-width:none;padding:0}
+    .app.booth-mode>.nav,.app.booth-mode>.hero,.app.booth-mode>.remote-section,.app.booth-mode>.footer{display:none!important}
+    .app.booth-mode>.booth{display:block!important;margin:0;min-height:100dvh;padding:18px clamp(10px,3vw,28px)}
+    .app.booth-mode>.booth>.panel{max-width:1180px;margin:0 auto}
+    .booth-homebar{display:flex;justify-content:center;margin:0 0 14px}
+    .home-link{border:0;background:transparent;font-weight:800;cursor:pointer;padding:8px 12px;opacity:.68}
+    .home-link:hover{opacity:1}
     .nav{display:flex;align-items:center;justify-content:center;gap:12px;padding:18px 0 8px;position:relative}
     .nav .pill{position:absolute;right:0;top:14px}
     .brand{font-family:"Playfair Display",serif;font-size:34px;font-weight:600;letter-spacing:-.04em;text-align:center}
@@ -105,6 +112,7 @@
     .side-tools{position:fixed;right:12px;top:50%;transform:translateY(-50%);z-index:1000;display:flex;flex-direction:column;gap:10px}
     .side-tool{width:46px;height:46px;border:2px solid var(--line);border-radius:14px;background:#fff;box-shadow:4px 4px 0 var(--line);font-size:19px;font-weight:800;display:grid;place-items:center;cursor:pointer}
     .side-tool:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--line)}
+    .app.booth-mode~.side-tools{display:none}
     @media(max-width:600px){.side-tools{right:9px;top:auto;bottom:12px;transform:none;gap:8px}.side-tool{width:44px;height:44px;border-radius:12px;font-size:18px}}
     .floating-preview{display:none;position:fixed;right:10px;top:10px;z-index:999;background:#fff;border:2px solid var(--line);border-radius:14px;padding:7px;box-shadow:4px 4px 0 var(--line);width:min(42vw,180px)}
     .floating-preview.show{display:block}
@@ -192,11 +200,14 @@
     .select-wrap{max-width:900px;margin:0 auto}
     .save-phase{max-width:520px;margin:0 auto;text-align:center}
     .session-setup{max-width:680px;margin:0 auto;display:grid;gap:14px}
-    .setup-card{border:2px solid var(--line);border-radius:18px;background:#fff;padding:16px;box-shadow:4px 4px 0 rgba(27,26,24,.7)}
-    .setup-card>label{display:block;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:9px}
-    .choice-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .setup-card{border:2px solid var(--line);border-radius:18px;background:#fff;padding:18px;box-shadow:4px 4px 0 rgba(27,26,24,.7);text-align:center}
+    .setup-card>label{display:block;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;text-align:center}
+    .choice-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:520px;margin:0 auto}
     .choice-btn{border:2px solid var(--line);border-radius:14px;background:#fff;padding:16px;font-weight:900;font-size:16px}
     .choice-btn.on{background:var(--rose2);box-shadow:3px 3px 0 var(--line)}
+    .setup-card select{display:block;width:min(100%,360px);margin:0 auto;text-align:center}
+    .setup-card .utility-grid{grid-template-columns:repeat(3,1fr);max-width:520px;margin:0 auto}
+    .setup-card .utility{text-align:center}
     .capture-shell{max-width:760px;margin:0 auto}
     .capture-progress{margin-top:16px;text-align:center}
     .progress-track{height:12px;border:2px solid var(--line);border-radius:999px;overflow:hidden;background:#fff;margin:9px auto 14px;max-width:420px}
@@ -268,6 +279,7 @@
 
     <section class="section booth" id="booth">
       <div class="panel booth-panel">
+        <div class="booth-homebar"><button class="home-link" onclick="leaveBooth()">← Pia's Booth home</button></div>
         <div class="stepbar">
           <span class="stepchip on" id="step1">1 · Setup</span>
           <span class="stepchip" id="step2">2 · Capture</span>
@@ -324,7 +336,7 @@
               <div class="stage-overlay"></div><div class="gridline" id="gridline"></div>
               <div class="countdown" id="countdown">3</div>
               <div class="flash" id="flash"></div>
-              <div class="pose" id="pose">make half a heart toward the middle ♡</div>
+              <div class="pose" id="pose">make half a heart toward the middle</div>
             </div>
             <div class="capture-progress">
               <strong id="captureProgressText">Shot 1 of 4</strong>
@@ -454,7 +466,7 @@
   let peer = null, dataConn = null, mediaCall = null;
   let localStream = null, remoteStream = null;
   let roomCode = null, isHost = false, soloMode = false;
-  let shots = [], selected = new Set(), frameColor = '#f4c7d2', layoutMode='classic', characterFrame='none', mirrorMode=true, cameraFacing='user', currentPhase=1, sessionCount=4, sessionCancelled=false, deferredPrompt=null, cropState={}, activePhotoIndex=null, frameRects=[], dragState=null;
+  let shots = [], selected = new Set(), frameColor = '#f4c7d2', layoutMode='classic', characterFrame='none', mirrorMode=true, cameraFacing='user', currentPhase=1, sessionCount=4, sessionCancelled=false, sessionRunning=false, deferredPrompt=null, cropState={}, activePhotoIndex=null, frameRects=[], dragState=null;
 
   const $ = id => document.getElementById(id);
   const delay = ms => new Promise(r => setTimeout(r, ms));
@@ -467,7 +479,20 @@
     sec.style.display=show?'block':'none';
     if(show) sec.scrollIntoView({behavior:'smooth'});
   }
-  function showBooth(){$('booth').classList.add('active');$('booth').scrollIntoView({behavior:'smooth'})}
+  function showBooth(){
+    $('booth').classList.add('active');
+    document.querySelector('.app')?.classList.add('booth-mode');
+    window.scrollTo({top:0,left:0,behavior:'instant'});
+  }
+  function leaveBooth(){
+    sessionCancelled=true;sessionRunning=false;
+    if(localStream){localStream.getTracks().forEach(t=>t.stop());localStream=null}
+    if(remoteStream){remoteStream.getTracks?.().forEach?.(t=>t.stop());remoteStream=null}
+    $('booth')?.classList.remove('active');
+    document.querySelector('.app')?.classList.remove('booth-mode');
+    $('start') && ($('start').style.display='none');
+    window.scrollTo({top:0,left:0,behavior:'smooth'});
+  }
   function updateConnection(ok, text){ $('connectionDot').classList.toggle('ok',ok); $('connectionText').textContent=text; }
 
   async function enableCamera(){
@@ -574,13 +599,20 @@
     await runCountdownAt(startAt,seconds,poseIndex,true);
   }
 
-  async function runCountdownAt(startAt, seconds, poseIndex, capture){
-    $('pose').textContent=poses[poseIndex%poses.length];
-    const wait=Math.max(0,startAt-Date.now()); await delay(wait);
-    if(seconds>0){for(let n=seconds;n>=1;n--){ $('countdown').textContent=n; $('countdown').classList.add('show'); await delay(1000); }}
-    $('countdown').textContent='♡'; $('countdown').classList.add('show'); await delay(seconds===0?40:90); $('flash').classList.remove('on'); void $('flash').offsetWidth; $('flash').classList.add('on');
-    if(capture) takeCompositeShot();
-    await delay(220); $('countdown').classList.remove('show');
+  async function runCountdownAt(startAt,seconds,poseIndex,capture){
+    if($('pose'))$('pose').textContent=poses[poseIndex%poses.length].replace(/[♡♥]/g,'').trim();
+    const wait=Math.max(0,startAt-Date.now());await delay(wait);
+    const cd=$('countdown');
+    if(seconds>0){
+      for(let n=seconds;n>=1;n--){
+        if(sessionCancelled&&capture)return;
+        cd.textContent=n;cd.classList.add('show');await delay(1000);
+      }
+    }
+    cd.classList.remove('show');
+    $('flash').classList.remove('on');void $('flash').offsetWidth;$('flash').classList.add('on');
+    if(capture)takeCompositeShot();
+    await delay(240);
   }
 
   function drawVideoCover(ctx,video,x,y,w,h){
@@ -614,7 +646,7 @@
       if(rm)rm.onclick=e=>{e.stopPropagation();removeSelectedPhoto(i)};
       wrap.appendChild(el);
     });
-    if(shots.length)$('boothStatus').textContent=`${shots.length} photo${shots.length===1?'':'s'} captured. Tap a selected photo to edit that exact frame.`;
+    if(shots.length&&$('boothStatus'))$('boothStatus').textContent=`${shots.length} photo${shots.length===1?'':'s'} captured.`;
     if(selected.size>=1){
       if(activePhotoIndex===null||!selected.has(activePhotoIndex))activePhotoIndex=[...selected][0];
       renderPhotoTabs();syncCropControls();renderStrip();
@@ -713,26 +745,41 @@
     el?.classList.add('on');
   }
   function updateSessionProgress(done){
-    if($('captureProgressText'))$('captureProgressText').textContent='Shot '+Math.min(done+1,sessionCount)+' of '+sessionCount;
+    if($('captureProgressText'))$('captureProgressText').textContent=done>=sessionCount?'All '+sessionCount+' photos captured':'Shot '+(done+1)+' of '+sessionCount;
     if($('captureProgressFill'))$('captureProgressFill').style.width=((done/sessionCount)*100)+'%';
   }
-  function cancelAutoSession(){sessionCancelled=true;toast('Session cancelled');goPhase(1)}
+  function cancelAutoSession(){sessionCancelled=true;sessionRunning=false;toast('Session cancelled');goPhase(1)}
   async function beginAutoSession(){
+    if(sessionRunning)return;
     if(!localStream){toast('Enable your camera first');await enableCamera();if(!localStream)return}
     if(!soloMode&&!isHost){toast('The host starts the shared session');return}
-    sessionCancelled=false;shots=[];selected.clear();cropState={};activePhotoIndex=null;frameRects=[];if($('shots'))$('shots').innerHTML='';
-    updateSessionProgress(0);await goPhase(2);await delay(350);
-    for(let i=0;i<sessionCount;i++){
-      if(sessionCancelled)return;
-      updateSessionProgress(i);
-      const poseIndex=i%poses.length,seconds=Number($('delaySelect').value),startAt=Date.now()+(seconds===0?120:500);
-      if(dataConn?.open)dataConn.send({type:'countdown',startAt,delay:seconds,poseIndex});
-      await runCountdownAt(startAt,seconds,poseIndex,true);
-      updateSessionProgress(i+1);
-      if(i<sessionCount-1)await delay(seconds===0?650:500);
+    sessionRunning=true;sessionCancelled=false;
+    shots=[];selected.clear();cropState={};activePhotoIndex=null;frameRects=[];
+    if($('shots'))$('shots').innerHTML='';
+    updateCaptureUI();updateSessionProgress(0);
+    await goPhase(2);await delay(350);
+    try{
+      for(let i=0;i<sessionCount;i++){
+        if(sessionCancelled)break;
+        updateSessionProgress(i);
+        const poseIndex=i%poses.length;
+        const seconds=Number($('delaySelect')?.value||0);
+        const startAt=Date.now()+(seconds===0?100:450);
+        if(dataConn?.open)dataConn.send({type:'countdown',startAt,delay:seconds,poseIndex});
+        await runCountdownAt(startAt,seconds,poseIndex,true);
+        if(sessionCancelled)break;
+        updateSessionProgress(i+1);
+        if(i<sessionCount-1)await delay(seconds===0?700:550);
+      }
+      if(dataConn?.open)dataConn.send({type:'sessionDone'});
+      if(!sessionCancelled&&shots.length>0)await goPhase(3);
+    }catch(err){
+      console.error(err);
+      toast('The session hit an error. You can retry without losing the camera.');
+      await goPhase(1);
+    }finally{
+      sessionRunning=false;
     }
-    if(dataConn?.open)dataConn.send({type:'sessionDone'});
-    if(!sessionCancelled)await goPhase(3);
   }
   function toggleMirror(){
     if(cameraFacing!=='user')return;
