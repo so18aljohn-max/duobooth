@@ -20,3 +20,5 @@ Captured photos stay in the browser unless the user downloads or shares them. Li
 
 ## Deployment
 The repository includes a GitHub Pages workflow in `.github/workflows/pages.yml`.
+
+Pages deployment enabled.
