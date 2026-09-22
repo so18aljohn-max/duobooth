@@ -89,6 +89,14 @@
     .crop-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
     .crop-actions button{border:2px solid var(--line);border-radius:10px;background:white;padding:9px;font-weight:800}
     .active-photo-badge{display:inline-flex;border:2px solid var(--line);border-radius:999px;padding:5px 9px;background:var(--yellow);font-size:11px;font-weight:800}
+    .floating-preview{display:none;position:fixed;right:10px;top:10px;z-index:999;background:#fff;border:2px solid var(--line);border-radius:14px;padding:7px;box-shadow:4px 4px 0 var(--line);width:min(42vw,180px)}
+    .floating-preview.show{display:block}
+    .floating-preview .fp-label{font-size:9px;font-weight:900;text-align:center;margin-bottom:4px;opacity:.65}
+    .floating-preview canvas{display:block;width:100%;height:auto;max-height:30dvh;object-fit:contain;border-radius:8px}
+    .character-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+    .character{border:2px solid var(--line);border-radius:12px;background:#fff;padding:10px 6px;font-weight:800;font-size:12px;min-height:62px}
+    .character.on{background:var(--rose2)}
+    @media(max-width:600px){.floating-preview{width:min(44vw,170px);top:8px;right:8px}.character-grid{grid-template-columns:repeat(2,1fr)}}
     .shot.active-edit{outline:4px solid var(--yellow);outline-offset:2px}
     .remote-section{scroll-margin-top:14px}
     .editor-tools{border:2px solid var(--line);border-radius:18px;background:#fff;padding:18px}
@@ -260,6 +268,19 @@
               <button class="template" data-layout="postcard" onclick="setLayout('postcard',this)">✉<br>Postcard</button>
               <button class="template" data-layout="square" onclick="setLayout('square',this)">□<br>Square social</button>
             </div>
+            <label>Character frame</label>
+            <div class="character-grid" id="characterGrid">
+              <button class="character on" data-char="none" onclick="setCharacterFrame('none',this)">♡<br>Clean</button>
+              <button class="character" data-char="cat" onclick="setCharacterFrame('cat',this)">🐱<br>Cat Club</button>
+              <button class="character" data-char="bunny" onclick="setCharacterFrame('bunny',this)">🐰<br>Bunny Pop</button>
+              <button class="character" data-char="bear" onclick="setCharacterFrame('bear',this)">🐻<br>Bear Hug</button>
+              <button class="character" data-char="duck" onclick="setCharacterFrame('duck',this)">🐥<br>Duckie</button>
+              <button class="character" data-char="frog" onclick="setCharacterFrame('frog',this)">🐸<br>Froggy</button>
+              <button class="character" data-char="ghost" onclick="setCharacterFrame('ghost',this)">👻<br>Ghostie</button>
+              <button class="character" data-char="angel" onclick="setCharacterFrame('angel',this)">☁️<br>Cloud Angel</button>
+              <button class="character" data-char="stars" onclick="setCharacterFrame('stars',this)">⭐<br>Star Pop</button>
+              <button class="character" data-char="hearts" onclick="setCharacterFrame('hearts',this)">💗<br>Heart Party</button>
+            </div>
             <label>Frame color</label>
             <div class="swatches">
               <button class="swatch theme-pink" onclick="setFrame('#f4c7d2')" aria-label="pink"></button>
@@ -292,6 +313,10 @@
     <footer class="footer">Dedicated to Sophia and her photobooth escapades. ♡</footer>
   </main>
   <div id="toast" class="toast"></div>
+  <div id="floatingPreview" class="floating-preview" aria-hidden="true">
+    <div class="fp-label">EDIT PREVIEW</div>
+    <canvas id="floatingCanvas"></canvas>
+  </div>
 
 <script>
   const poses = [
@@ -307,7 +332,7 @@
   let peer = null, dataConn = null, mediaCall = null;
   let localStream = null, remoteStream = null;
   let roomCode = null, isHost = false, soloMode = false;
-  let shots = [], selected = new Set(), frameColor = '#f4c7d2', layoutMode='classic', mirrorMode=true, deferredPrompt=null, cropState={}, activePhotoIndex=null, frameRects=[], dragState=null;
+  let shots = [], selected = new Set(), frameColor = '#f4c7d2', layoutMode='classic', characterFrame='none', mirrorMode=true, deferredPrompt=null, cropState={}, activePhotoIndex=null, frameRects=[], dragState=null;
 
   const $ = id => document.getElementById(id);
   const delay = ms => new Promise(r => setTimeout(r, ms));
@@ -506,9 +531,10 @@
   function toggleMirror(){mirrorMode=!mirrorMode;$('mirrorBtn').textContent=mirrorMode?'Mirror on':'Mirror off';$('mirrorBtn').classList.toggle('on',mirrorMode);$('localVideo').style.transform=mirrorMode?'scaleX(-1)':'none'}
   function toggleGrid(){$('gridline').classList.toggle('on');const on=$('gridline').classList.contains('on');$('gridBtn').textContent=on?'Grid on':'Grid off';$('gridBtn').classList.toggle('on',on)}
   function setLayout(id,el){layoutMode=id;document.querySelectorAll('.template').forEach(x=>x.classList.remove('on'));el?.classList.add('on');saveStyle();renderStrip()}
+  function setCharacterFrame(id,el){characterFrame=id;document.querySelectorAll('.character').forEach(x=>x.classList.remove('on'));el?.classList.add('on');saveStyle();renderStrip()}
   function initFilters(){const box=$('filterGrid'); if(!box)return; filterNames.forEach(([id,name])=>{const b=document.createElement('button');b.className='filter-chip'+(id===$('filterSelect').value?' on':'');b.textContent=name;b.onclick=()=>{$('filterSelect').value=id;box.querySelectorAll('.filter-chip').forEach(x=>x.classList.remove('on'));b.classList.add('on');saveStyle();renderStrip()};box.appendChild(b)})}
-  function saveStyle(){try{localStorage.setItem('duobooth-style',JSON.stringify({layoutMode,frameColor,filter:$('filterSelect')?.value||'none',intensity:$('filterIntensity')?.value||75,gap:$('frameGap')?.value||20,caption:$('caption')?.value||''}))}catch{}}
-  function loadStyle(){try{const st=JSON.parse(localStorage.getItem('duobooth-style')||'{}');layoutMode=st.layoutMode||layoutMode;frameColor=st.frameColor||frameColor;if(st.filter)$('filterSelect').value=st.filter;if(st.intensity)$('filterIntensity').value=st.intensity;if(st.gap)$('frameGap').value=st.gap;if(st.caption)$('caption').value=st.caption;$('customColor').value=frameColor;document.querySelectorAll('.template').forEach(x=>x.classList.toggle('on',x.dataset.layout===layoutMode))}catch{}}
+  function saveStyle(){try{localStorage.setItem('duobooth-style',JSON.stringify({layoutMode,characterFrame,frameColor,filter:$('filterSelect')?.value||'none',intensity:$('filterIntensity')?.value||75,gap:$('frameGap')?.value||20,caption:$('caption')?.value||''}))}catch{}}
+  function loadStyle(){try{const st=JSON.parse(localStorage.getItem('duobooth-style')||'{}');layoutMode=st.layoutMode||layoutMode;characterFrame=st.characterFrame||characterFrame;frameColor=st.frameColor||frameColor;if(st.filter)$('filterSelect').value=st.filter;if(st.intensity)$('filterIntensity').value=st.intensity;if(st.gap)$('frameGap').value=st.gap;if(st.caption)$('caption').value=st.caption;$('customColor').value=frameColor;document.querySelectorAll('.template').forEach(x=>x.classList.toggle('on',x.dataset.layout===layoutMode));document.querySelectorAll('.character').forEach(x=>x.classList.toggle('on',x.dataset.char===characterFrame))}catch{}}
   function setFrame(c){frameColor=c;if($('customColor'))$('customColor').value=c;saveStyle();renderStrip()}
   function applyFilter(ctx,type,w,h){
     if(type==='none')return;const im=ctx.getImageData(0,0,w,h),d=im.data,a=(Number($('filterIntensity')?.value)||75)/100;
@@ -561,7 +587,24 @@
     if(layoutMode==='story'){const pad=60,ph=(H-250-gap*(count-1))/count;for(let i=0;i<count;i++)await draw(imgs[i],picks[i],pad,80+i*(ph+gap),W-pad*2,ph,18)}
     if(layoutMode==='wide'){if(count===1)await draw(imgs[0],picks[0],38,38,W-76,H-170,18);else{const rows=Math.ceil(count/2),pw=(W-76-gap)/2,ph=(H-76-95-gap*(rows-1))/rows;for(let i=0;i<count;i++)await draw(imgs[i],picks[i],38+(i%2)*(pw+gap),38+Math.floor(i/2)*(ph+gap),pw,ph,16)}}
     if(layoutMode==='postcard'){const pad=45;if(count===1)await draw(imgs[0],picks[0],pad,pad,W-pad*2,H-pad*2-105,18);else{const pw=Math.round(W*.61),ph=H-pad*2;await draw(imgs[0],picks[0],pad,pad,pw,ph,18);const side=count-1,sh=(ph-gap*(side-1))/side;for(let i=1;i<count;i++)await draw(imgs[i],picks[i],pw+pad+gap,pad+(i-1)*(sh+gap),W-pw-pad*2-gap,sh,10)}}
-    const dark=frameColor.toLowerCase()==='#1d1d1d'||layoutMode==='film';ctx.fillStyle=dark?'#fff':'#1b1a18';ctx.textAlign='center';ctx.font='600 '+Math.max(28,Math.round(W*.027))+'px DM Sans, sans-serif';ctx.fillText(($('caption').value||'our little moment ♡').slice(0,40),W/2,H-45);ctx.font='500 '+Math.max(17,Math.round(W*.014))+'px DM Sans, sans-serif';ctx.globalAlpha=.7;ctx.fillText(new Date().toLocaleDateString(),W/2,H-18);ctx.globalAlpha=1;saveStyle()
+    function drawCharacterDecor(){
+      if(characterFrame==='none')return;
+      const emojiMap={cat:'🐱',bunny:'🐰',bear:'🐻',duck:'🐥',frog:'🐸',ghost:'👻',angel:'☁️',stars:'⭐',hearts:'💗'};
+      const em=emojiMap[characterFrame]||'♡';
+      const size=Math.max(34,Math.round(W*.055));
+      ctx.save();ctx.font=size+'px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+      const pts=[
+        [size*.75,size*.75],[W-size*.75,size*.75],[size*.75,H-size*1.8],[W-size*.75,H-size*1.8]
+      ];
+      pts.forEach(([x,y],i)=>{ctx.save();ctx.translate(x,y);ctx.rotate((i%2?1:-1)*0.14);ctx.fillText(em,0,0);ctx.restore()});
+      ctx.globalAlpha=.85;
+      if(characterFrame==='stars'||characterFrame==='hearts'){
+        for(let i=0;i<7;i++){const x=W*(.14+i*.12),y=size*.95+(i%2)*size*.55;ctx.fillText(em,x,y)}
+      }
+      ctx.restore()
+    }
+    drawCharacterDecor();
+    const dark=frameColor.toLowerCase()==='#1d1d1d'||layoutMode==='film';ctx.fillStyle=dark?'#fff':'#1b1a18';ctx.textAlign='center';ctx.font='600 '+Math.max(28,Math.round(W*.027))+'px DM Sans, sans-serif';ctx.fillText(($('caption').value||'our little moment ♡').slice(0,40),W/2,H-45);ctx.font='500 '+Math.max(17,Math.round(W*.014))+'px DM Sans, sans-serif';ctx.globalAlpha=.7;ctx.fillText(new Date().toLocaleDateString(),W/2,H-18);ctx.globalAlpha=1;saveStyle();syncFloatingPreview()
   }
 
   function canvasPoint(e){const c=$('stripCanvas'),r=c.getBoundingClientRect(),p=e.touches?e.touches[0]:e;return{x:(p.clientX-r.left)*(c.width/r.width),y:(p.clientY-r.top)*(c.height/r.height)}}
@@ -570,6 +613,18 @@
   function moveCanvasDrag(e){if(!dragState||activePhotoIndex===null)return;const pt=canvasPoint(e),c=ensureCrop(activePhotoIndex),dx=(pt.x-dragState.startX)/Math.max(1,dragState.rect.w),dy=(pt.y-dragState.startY)/Math.max(1,dragState.rect.h);c.panX=Math.max(-1,Math.min(1,dragState.panX+dx*2.2));c.panY=Math.max(-1,Math.min(1,dragState.panY+dy*2.2));renderStrip();if(e.cancelable)e.preventDefault()}
   function endCanvasDrag(){dragState=null;$('stripCanvas').classList.remove('dragging')}
 
+  function syncFloatingPreview(){
+    const src=$('stripCanvas'),dst=$('floatingCanvas'); if(!src||!dst||!src.width||!src.height)return;
+    dst.width=src.width;dst.height=src.height;const dctx=dst.getContext('2d');dctx.clearRect(0,0,dst.width,dst.height);dctx.drawImage(src,0,0)
+  }
+  function updateFloatingPreview(){
+    const fp=$('floatingPreview'),editor=$('editor'),card=document.querySelector('.strip-card');
+    if(!fp||!editor||!card||window.innerWidth>700||!editor.classList.contains('active')){fp?.classList.remove('show');return}
+    const er=editor.getBoundingClientRect(),cr=card.getBoundingClientRect();
+    const should=cr.bottom<70 && er.bottom>120;
+    fp.classList.toggle('show',should);fp.setAttribute('aria-hidden',should?'false':'true');
+    if(should)syncFloatingPreview()
+  }
   async function getBlob(){await renderStrip();return await new Promise(r=>$('stripCanvas').toBlob(r,'image/png',1))}
   async function downloadStrip(){const b=await getBlob(),a=document.createElement('a');a.download='duobooth-'+Date.now()+'.png';a.href=URL.createObjectURL(b);a.click();URL.revokeObjectURL(a.href);setStep(4)}
   async function shareStrip(){const b=await getBlob(),f=new File([b],'duobooth.png',{type:'image/png'});if(navigator.canShare?.({files:[f]})){await navigator.share({files:[f],title:'DuoBooth'});setStep(4)}else downloadStrip()}
@@ -587,7 +642,7 @@
   const cropCanvas=$('stripCanvas');
   cropCanvas.addEventListener('pointerdown',startCanvasDrag);
   cropCanvas.addEventListener('pointermove',moveCanvasDrag);
-  window.addEventListener('pointerup',endCanvasDrag);
+  window.addEventListener('pointerup',endCanvasDrag);window.addEventListener('scroll',updateFloatingPreview,{passive:true});window.addEventListener('resize',updateFloatingPreview);
 
   $('joinCode').addEventListener('input',e=>e.target.value=e.target.value.toUpperCase().replace(/[^A-Z]/g,''));
 </script>
