@@ -65,7 +65,7 @@
     .booth{display:none}
     .booth.active{display:block}
     .stage-wrap{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;align-items:start}
-    .stage{position:relative;border:2px solid var(--line);background:#111;border-radius:20px;overflow:hidden;min-height:510px;box-shadow:var(--shadow)}
+    .stage{position:relative;border:2px solid var(--line);background:#111;border-radius:20px;overflow:hidden;aspect-ratio:4/3;min-height:0;box-shadow:var(--shadow)}
     .video-grid{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;background:#222}
     .video-cell{position:relative;overflow:hidden;border-right:1px solid #ffffff3a}
     .video-cell:last-child{border-right:0}
@@ -155,7 +155,7 @@
       .panel{padding:12px;border-radius:16px;box-shadow:4px 4px 0 var(--line)}
       .panel h2{font-size:31px}.room-grid{gap:12px}.card{padding:14px}
       .input-row{display:grid;grid-template-columns:1fr}.input-row .btn{width:100%}
-      .stage-wrap{gap:12px}.stage{width:100%;aspect-ratio:3/4;min-height:0;border-radius:15px;box-shadow:4px 4px 0 var(--line)}
+      .stage-wrap{gap:12px}.stage{width:100%;aspect-ratio:4/3;min-height:0;border-radius:15px;box-shadow:4px 4px 0 var(--line)}
       .video-grid{grid-template-columns:1fr;grid-template-rows:1fr 1fr}
       .video-cell{height:auto;min-height:0;border-right:0;border-bottom:1px solid #ffffff3a}
       .video-cell:last-child{border-bottom:0}
@@ -178,7 +178,7 @@
     }
     @media(max-width:380px){
       .app{padding:7px}.panel{padding:9px}.template-grid,.filter-grid{grid-template-columns:1fr 1fr}
-      .stage{aspect-ratio:9/14}.shutter{bottom:48px}.strip-card{max-height:44dvh}.strip-card #stripCanvas{max-height:calc(44dvh - 18px)}
+      .stage{aspect-ratio:4/3}.shutter{bottom:48px}.strip-card{max-height:44dvh}.strip-card #stripCanvas{max-height:calc(44dvh - 18px)}
     }
   
     .stepbar{display:flex;justify-content:center;gap:7px;flex-wrap:wrap;margin:0 0 22px}.stepchip{border:2px solid var(--line);border-radius:999px;background:#fff;padding:7px 11px;font-size:12px;font-weight:800;transition:.2s ease}.stepchip.on{background:var(--yellow);transform:translateY(-1px);box-shadow:2px 2px 0 var(--line)}
@@ -191,6 +191,22 @@
     .capture-count{display:inline-flex;align-items:center;justify-content:center;margin:14px auto 0;border:2px solid var(--line);border-radius:999px;background:#fff4f7;padding:7px 11px;font-size:12px;font-weight:800}
     .select-wrap{max-width:900px;margin:0 auto}
     .save-phase{max-width:520px;margin:0 auto;text-align:center}
+    .session-setup{max-width:680px;margin:0 auto;display:grid;gap:14px}
+    .setup-card{border:2px solid var(--line);border-radius:18px;background:#fff;padding:16px;box-shadow:4px 4px 0 rgba(27,26,24,.7)}
+    .setup-card>label{display:block;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:9px}
+    .choice-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .choice-btn{border:2px solid var(--line);border-radius:14px;background:#fff;padding:16px;font-weight:900;font-size:16px}
+    .choice-btn.on{background:var(--rose2);box-shadow:3px 3px 0 var(--line)}
+    .capture-shell{max-width:760px;margin:0 auto}
+    .capture-progress{margin-top:16px;text-align:center}
+    .progress-track{height:12px;border:2px solid var(--line);border-radius:999px;overflow:hidden;background:#fff;margin:9px auto 14px;max-width:420px}
+    .progress-fill{height:100%;width:0;background:linear-gradient(90deg,#f4b8c9,#b9d9ff);transition:width .25s ease}
+    .preview-dock{max-width:560px;margin:0 auto 22px;position:sticky;top:10px;z-index:55}
+    .preview-dock .strip-card{position:relative;top:auto;max-height:44dvh;overflow:hidden}
+    .preview-dock #stripCanvas{width:auto;max-width:100%;max-height:calc(44dvh - 28px);margin:auto;object-fit:contain}
+    .phase-tools{max-width:760px;margin:0 auto}
+    .advanced-edit{margin-top:18px;border:2px dashed var(--line);border-radius:14px;background:#fffaf0;padding:10px 12px}
+    .advanced-edit summary{cursor:pointer;font-weight:800}
     .save-card{border:2px solid var(--line);border-radius:22px;background:#fff;padding:14px;box-shadow:var(--shadow)}
     #finalCanvas{display:block;width:100%;height:auto;max-height:66dvh;object-fit:contain;border-radius:12px}
     @media(max-width:600px){.stepbar{position:sticky;top:0;z-index:90;background:rgba(255,248,238,.92);backdrop-filter:blur(10px);padding:8px 4px;margin:0 -4px 16px}.stepchip{font-size:10px;padding:6px 8px}.phase-nav{display:grid;grid-template-columns:1fr 1fr;position:sticky;bottom:8px;z-index:80;background:rgba(255,248,238,.92);backdrop-filter:blur(10px);padding:8px;border-radius:16px}.phase-nav .btn{min-width:0;width:100%;box-shadow:3px 3px 0 var(--line)}}
@@ -247,91 +263,115 @@
             <div id="joinStatus" class="status">Waiting for a room code.</div>
           </div>
         </div>
-
-        <div id="savePhase" class="save-phase phase-section phase-hidden">
-          <h3 class="phase-title">Keep this one ♡</h3>
-          <p class="phase-sub">Your finished frame is ready in high resolution.</p>
-          <div class="save-card"><canvas id="finalCanvas" width="900" height="1500"></canvas></div>
-          <div class="phase-nav"><button class="btn" onclick="goPhase(3)">← Keep editing</button><button class="btn primary" onclick="downloadStrip()">Download PNG</button><button class="btn secondary" onclick="shareStrip()">Share</button></div>
-        </div>
       </div>
     </section>
 
     <section class="section booth" id="booth">
-      <div class="panel">
-        <div class="stepbar"><span class="stepchip on" id="step1">1 · Shoot</span><span class="stepchip" id="step2">2 · Select</span><span class="stepchip" id="step3">3 · Style</span><span class="stepchip" id="step4">4 · Save</span></div><h2>Your shared frame.</h2>
-        <p class="muted" id="roomLabel">Room —</p>
-        <div id="shootPhase" class="stage-wrap phase-section">
-          <div class="stage" id="stage">
-            <div class="video-grid">
-              <div class="video-cell">
-                <video id="localVideo" autoplay playsinline muted></video>
-                <div id="localEmpty" class="empty-person">Allow camera access<br>to enter the frame.</div>
-              </div>
-              <div class="video-cell">
-                <video id="remoteVideo" autoplay playsinline></video>
-                <div id="remoteEmpty" class="empty-person">Waiting for your person ♡</div>
+      <div class="panel booth-panel">
+        <div class="stepbar">
+          <span class="stepchip on" id="step1">1 · Setup</span>
+          <span class="stepchip" id="step2">2 · Capture</span>
+          <span class="stepchip" id="step3">3 · Pick</span>
+          <span class="stepchip" id="step4">4 · Frame</span>
+          <span class="stepchip" id="step5">5 · Filter</span>
+          <span class="stepchip" id="step6">6 · Finish</span>
+          <span class="stepchip" id="step7">7 · Save</span>
+        </div>
+        <p class="muted" id="roomLabel" style="text-align:center">In-person photobooth</p>
+
+        <div id="setupPhase" class="phase-section">
+          <h3 class="phase-title">Set up your session.</h3>
+          <p class="phase-sub">Choose how many shots you want and how long you want between each one.</p>
+          <div class="session-setup">
+            <div class="setup-card">
+              <label>Number of photos</label>
+              <div class="choice-row">
+                <button class="choice-btn on" id="count4Btn" onclick="setSessionCount(4,this)">4 photos</button>
+                <button class="choice-btn" id="count6Btn" onclick="setSessionCount(6,this)">6 photos</button>
               </div>
             </div>
-            <div class="stage-overlay"></div><div class="gridline" id="gridline"></div>
-            <div class="countdown" id="countdown">3</div>
-            <div class="flash" id="flash"></div>
-            <button class="shutter" id="stageShutter" onclick="captureOne()" aria-label="Take photo"><span></span></button>
-            <div class="pose" id="pose">make half a heart toward the middle ♡</div>
+            <div class="setup-card">
+              <label>Capture delay</label>
+              <select id="delaySelect"><option value="0">No delay</option><option value="3">3 seconds</option><option value="5">5 seconds</option><option value="10">10 seconds</option></select>
+            </div>
+            <div class="setup-card">
+              <label>Camera</label>
+              <div class="utility-grid">
+                <button class="utility on" id="mirrorBtn" onclick="toggleMirror()">Mirror on</button>
+                <button class="utility" id="gridBtn" onclick="toggleGrid()">Grid off</button>
+                <button class="utility" id="cameraFacingBtn" onclick="toggleCameraFacing()">Front camera</button>
+              </div>
+            </div>
           </div>
-          <div class="controls">
-            <div class="connection-badge"><span class="dot ok" id="connectionDot"></span><span id="connectionText">In-person booth</span></div>
-            <button class="btn" onclick="enableCamera()">Restart / switch on camera</button>
-            <div class="utility-grid" style="margin-top:10px"><button class="utility on" id="mirrorBtn" onclick="toggleMirror()">Mirror on</button><button class="utility" id="gridBtn" onclick="toggleGrid()">Grid off</button><button class="utility" id="cameraFacingBtn" onclick="toggleCameraFacing()">Front camera</button></div>
-            <label>Shot delay</label>
-            <select id="delaySelect"><option value="0">No delay</option><option value="3">3 seconds</option><option value="5">5 seconds</option><option value="10">10 seconds</option></select>
-            <label>Session</label>
-            <button class="btn primary" onclick="startSession()">Take 6 photos</button>
-            <button class="btn secondary" onclick="captureOne()" style="margin-top:10px">Take one photo</button>
-            <button class="btn" onclick="resetShots()" style="margin-top:10px">Clear photos</button>
-            <div class="status" id="boothStatus">Tap Start photobooth above, or restart the camera here if needed.</div>
-          </div>
+          <div class="phase-nav"><button class="btn primary" onclick="beginAutoSession()">Start session ♡</button></div>
         </div>
-        <div id="shootActions" class="phase-section">
-          <div style="text-align:center"><span class="capture-count" id="captureCount">0 photos captured</span></div>
-          <div class="phase-nav"><button class="btn primary" id="toSelectBtn" onclick="goPhase(2)" disabled>Choose photos →</button></div>
+
+        <div id="capturePhase" class="phase-section phase-hidden">
+          <h3 class="phase-title">Ready?</h3>
+          <p class="phase-sub" id="capturePhaseSub">The booth will take each photo automatically.</p>
+          <div class="capture-shell">
+            <div class="stage" id="stage">
+              <div class="video-grid">
+                <div class="video-cell">
+                  <video id="localVideo" autoplay playsinline muted></video>
+                  <div id="localEmpty" class="empty-person">Allow camera access<br>to enter the frame.</div>
+                </div>
+                <div class="video-cell">
+                  <video id="remoteVideo" autoplay playsinline></video>
+                  <div id="remoteEmpty" class="empty-person">Waiting for your person ♡</div>
+                </div>
+              </div>
+              <div class="stage-overlay"></div><div class="gridline" id="gridline"></div>
+              <div class="countdown" id="countdown">3</div>
+              <div class="flash" id="flash"></div>
+              <div class="pose" id="pose">make half a heart toward the middle ♡</div>
+            </div>
+            <div class="capture-progress">
+              <strong id="captureProgressText">Shot 1 of 4</strong>
+              <div class="progress-track"><div class="progress-fill" id="captureProgressFill"></div></div>
+              <button class="btn" id="cancelSessionBtn" onclick="cancelAutoSession()">Cancel session</button>
+            </div>
+          </div>
         </div>
 
         <div id="selectPhase" class="select-wrap phase-section phase-hidden">
           <h3 class="phase-title">Pick your favorites.</h3>
-          <p class="phase-sub">Choose up to four photos. Tap a selected photo again to make it the active one for editing.</p>
-          <div class="importer"><label class="btn secondary" for="photoImport">Add photos from library</label><input id="photoImport" type="file" accept="image/*" multiple><span class="muted" style="font-size:12px">You can mix camera shots and library photos.</span></div>
+          <p class="phase-sub">Choose up to four shots. Your frame will place them automatically.</p>
+          <div class="importer"><label class="btn secondary" for="photoImport">Add photos from library</label><input id="photoImport" type="file" accept="image/*" multiple><span class="muted" style="font-size:12px">Camera shots and library photos can be mixed.</span></div>
           <div id="shots" class="shots"></div>
-          <div class="phase-nav"><button class="btn" onclick="goPhase(1)">← Back to camera</button><button class="btn primary" id="toStyleBtn" onclick="goPhase(3)">Style photos →</button></div>
+          <div class="phase-nav"><button class="btn" onclick="goPhase(1)">← New session</button><button class="btn primary" id="toFrameBtn" onclick="goPhase(4)">Choose a frame →</button></div>
         </div>
 
-        <div id="editor" class="editor phase-section phase-hidden">
-          <div class="strip-card"><div class="sticky-label" style="font-size:11px;font-weight:800;margin:0 0 7px;text-align:center;opacity:.65">LIVE EDIT PREVIEW · drag photo to reposition</div><canvas id="stripCanvas" width="900" height="1500"></canvas></div>
+        <div id="previewDock" class="preview-dock phase-hidden">
+          <div class="strip-card"><div class="sticky-label">LIVE PREVIEW</div><canvas id="stripCanvas" width="900" height="1500"></canvas></div>
+        </div>
+
+        <div id="framePhase" class="phase-tools phase-section phase-hidden">
+          <h3 class="phase-title">Choose your frame.</h3>
+          <p class="phase-sub">Your booth shots already match the frame crop, so you shouldn’t need to resize them.</p>
           <div class="editor-tools">
-            <h3 style="margin-top:0">Finish your frame</h3>
-            <p class="muted">Choose 1–4 photos to edit. A single photo works perfectly with Polaroid and other frames. Your last style is remembered on this device.</p>
             <label>Layout</label>
             <div class="template-grid">
-              <button class="template on" data-layout="classic" onclick="setLayout('classic',this)">▥<br>Classic 4-cut</button>
+              <button class="template on" data-layout="classic" onclick="setLayout('classic',this)">▥<br>Classic strip</button>
               <button class="template" data-layout="double" onclick="setLayout('double',this)">▦<br>Double strip</button>
               <button class="template" data-layout="polaroid" onclick="setLayout('polaroid',this)">▢<br>Polaroid</button>
               <button class="template" data-layout="grid" onclick="setLayout('grid',this)">⊞<br>2×2 grid</button>
-              <button class="template" data-layout="film" onclick="setLayout('film',this)">▤<br>Film sprocket</button>
-              <button class="template" data-layout="story" onclick="setLayout('story',this)">▯<br>Story 9:16</button>
+              <button class="template" data-layout="film" onclick="setLayout('film',this)">▤<br>Film strip</button>
+              <button class="template" data-layout="story" onclick="setLayout('story',this)">▯<br>Story</button>
               <button class="template" data-layout="wide" onclick="setLayout('wide',this)">▭<br>Wide collage</button>
               <button class="template" data-layout="postcard" onclick="setLayout('postcard',this)">✉<br>Postcard</button>
-              <button class="template" data-layout="square" onclick="setLayout('square',this)">□<br>Square social</button>
+              <button class="template" data-layout="square" onclick="setLayout('square',this)">□<br>Square</button>
             </div>
             <label>Template style</label>
             <div class="character-grid" id="characterGrid">
               <button class="character on" data-char="none" onclick="setCharacterFrame('none',this)">Clean studio<small>simple border</small></button>
               <button class="character" data-char="valentine" onclick="setCharacterFrame('valentine',this)">Valentine doodle<small>hearts · bows · notes</small></button>
-              <button class="character" data-char="y2k" onclick="setCharacterFrame('y2k',this)">Y2K browser<small>pastel windows · chrome</small></button>
+              <button class="character" data-char="y2k" onclick="setCharacterFrame('y2k',this)">Y2K browser<small>pastel windows</small></button>
               <button class="character" data-char="scrapbook" onclick="setCharacterFrame('scrapbook',this)">Scrapbook<small>tape · paper · doodles</small></button>
-              <button class="character" data-char="mascot" onclick="setCharacterFrame('mascot',this)">Cute mascot<small>original cat · bunny · bear</small></button>
+              <button class="character" data-char="mascot" onclick="setCharacterFrame('mascot',this)">Cute mascot<small>original character art</small></button>
               <button class="character" data-char="stickerpop" onclick="setCharacterFrame('stickerpop',this)">Sticker pop<small>flowers · bubbles · charms</small></button>
               <button class="character" data-char="retro" onclick="setCharacterFrame('retro',this)">Retro print<small>film labels · date marks</small></button>
-              <button class="character" data-char="softblue" onclick="setCharacterFrame('softblue',this)">Blue memory<small>soft stars · diary style</small></button>
+              <button class="character" data-char="softblue" onclick="setCharacterFrame('softblue',this)">Blue memory<small>soft diary style</small></button>
               <button class="character" data-char="editorial" onclick="setCharacterFrame('editorial',this)">Editorial B&W<small>clean fashion strip</small></button>
             </div>
             <label>Frame color</label>
@@ -341,25 +381,49 @@
               <button class="swatch theme-cream" onclick="setFrame('#fff4db')" aria-label="cream"></button>
               <button class="swatch" style="background:#fff" onclick="setFrame('#ffffff')" aria-label="white"></button>
               <button class="swatch theme-black" onclick="setFrame('#1d1d1d')" aria-label="black"></button>
-              <input id="customColor" type="color" value="#f4c7d2" style="width:40px;padding:2px" onchange="setFrame(this.value)" />
+              <input id="customColor" type="color" value="#f4c7d2" style="width:42px;padding:2px" onchange="setFrame(this.value)" />
             </div>
+          </div>
+          <div class="phase-nav"><button class="btn" onclick="goPhase(3)">← Favorites</button><button class="btn primary" onclick="goPhase(5)">Choose filter →</button></div>
+        </div>
+
+        <div id="filterPhase" class="phase-tools phase-section phase-hidden">
+          <h3 class="phase-title">Set the look.</h3>
+          <p class="phase-sub">One filter applies consistently across the whole strip.</p>
+          <div class="editor-tools">
             <label>Filter</label>
             <div class="filter-grid" id="filterGrid"></div>
             <select id="filterSelect" style="display:none"><option value="none">Natural</option><option value="warm">Warm</option><option value="mono">B&W</option><option value="soft">Soft</option><option value="sepia">Sepia</option><option value="cool">Cool</option><option value="vintage">Vintage</option><option value="bright">Bright</option><option value="fade">Faded</option><option value="contrast">Punchy</option></select>
-            <div class="crop-tools">
-              <div class="crop-head"><strong>Position photo</strong><span class="active-photo-badge" id="activePhotoLabel">Photo 1</span></div>
-              <p class="crop-help">Choose a photo, then drag and resize it independently inside its own frame.</p>
-              <div class="photo-tabs" id="photoTabs"></div>
-              <label>Photo size / zoom</label>
-              <input class="range" id="photoZoom" type="range" min="25" max="400" value="100" step="1" oninput="setActiveZoom(this.value)" />
-              <div class="crop-actions"><button onclick="setFitMode('contain')">Fit whole photo</button><button onclick="setFitMode('cover')">Fill frame</button><button onclick="centerActivePhoto()">Center</button><button onclick="resetActivePhoto()">Reset crop</button></div>
-            </div>
             <label>Filter intensity</label><input class="range" id="filterIntensity" type="range" min="0" max="100" value="75" oninput="saveStyle();renderStrip()" />
-            <label>Spacing</label><input class="range" id="frameGap" type="range" min="8" max="42" value="20" oninput="saveStyle();renderStrip()" />
-            <label>Caption</label>
-            <input id="caption" value="our little moment ♡" oninput="saveStyle();renderStrip()" />
-            <div class="phase-nav"><button class="btn" onclick="goPhase(2)">← Change photos</button><button class="btn primary" onclick="goPhase(4)">Preview & save →</button></div>
           </div>
+          <div class="phase-nav"><button class="btn" onclick="goPhase(4)">← Frame</button><button class="btn primary" onclick="goPhase(6)">Finishing touches →</button></div>
+        </div>
+
+        <div id="finishPhase" class="phase-tools phase-section phase-hidden">
+          <h3 class="phase-title">Add the little things.</h3>
+          <p class="phase-sub">Caption and spacing are optional. Manual crop tools are tucked away in case one photo really needs them.</p>
+          <div class="editor-tools">
+            <label>Spacing</label><input class="range" id="frameGap" type="range" min="8" max="42" value="20" oninput="saveStyle();renderStrip()" />
+            <label>Caption</label><input id="caption" value="our little moment ♡" oninput="saveStyle();renderStrip()" />
+            <details class="advanced-edit">
+              <summary>Advanced photo adjustment</summary>
+              <div class="crop-tools">
+                <div class="crop-head"><strong>Adjust photo</strong><span class="active-photo-badge" id="activePhotoLabel">Photo 1</span></div>
+                <div class="photo-tabs" id="photoTabs"></div>
+                <label>Size</label>
+                <input class="range" id="photoZoom" type="range" min="70" max="180" value="100" step="1" oninput="setActiveZoom(this.value)" />
+                <div class="crop-actions"><button onclick="centerActivePhoto()">Center</button><button onclick="resetActivePhoto()">Reset</button></div>
+              </div>
+            </details>
+          </div>
+          <div class="phase-nav"><button class="btn" onclick="goPhase(5)">← Filter</button><button class="btn primary" onclick="goPhase(7)">Preview & save →</button></div>
+        </div>
+
+        <div id="savePhase" class="save-phase phase-section phase-hidden">
+          <h3 class="phase-title">Keep this one ♡</h3>
+          <p class="phase-sub">Your finished frame is ready in high resolution.</p>
+          <div class="save-card"><canvas id="finalCanvas" width="900" height="1500"></canvas></div>
+          <div class="phase-nav"><button class="btn" onclick="goPhase(6)">← Finishing touches</button><button class="btn primary" onclick="downloadStrip()">Download PNG</button><button class="btn secondary" onclick="shareStrip()">Share</button></div>
         </div>
       </div>
     </section>
@@ -390,7 +454,7 @@
   let peer = null, dataConn = null, mediaCall = null;
   let localStream = null, remoteStream = null;
   let roomCode = null, isHost = false, soloMode = false;
-  let shots = [], selected = new Set(), frameColor = '#f4c7d2', layoutMode='classic', characterFrame='none', mirrorMode=true, cameraFacing='user', currentPhase=1, deferredPrompt=null, cropState={}, activePhotoIndex=null, frameRects=[], dragState=null;
+  let shots = [], selected = new Set(), frameColor = '#f4c7d2', layoutMode='classic', characterFrame='none', mirrorMode=true, cameraFacing='user', currentPhase=1, sessionCount=4, sessionCancelled=false, deferredPrompt=null, cropState={}, activePhotoIndex=null, frameRects=[], dragState=null;
 
   const $ = id => document.getElementById(id);
   const delay = ms => new Promise(r => setTimeout(r, ms));
@@ -403,7 +467,7 @@
     sec.style.display=show?'block':'none';
     if(show) sec.scrollIntoView({behavior:'smooth'});
   }
-  function showBooth(){ $('booth').classList.add('active'); goPhase(1); $('booth').scrollIntoView({behavior:'smooth'}); }
+  function showBooth(){$('booth').classList.add('active');$('booth').scrollIntoView({behavior:'smooth'})}
   function updateConnection(ok, text){ $('connectionDot').classList.toggle('ok',ok); $('connectionText').textContent=text; }
 
   async function enableCamera(){
@@ -497,22 +561,10 @@
   function onRemoteStream(stream){ remoteStream=stream; $('remoteVideo').srcObject=stream; $('remoteEmpty').classList.add('hidden'); updateConnection(true,'Both cameras connected'); }
 
   async function startSolo(){
-    soloMode=true; isHost=true; roomCode='LOCAL'; $('stage').classList.add('solo-stage'); $('roomLabel').textContent='In-person photobooth'; showBooth(); updateConnection(true,'In-person booth');
-    $('remoteEmpty').textContent='In-person mode'; await enableCamera();
+    soloMode=true;isHost=true;roomCode='LOCAL';$('stage').classList.add('solo-stage');$('roomLabel').textContent='In-person photobooth';showBooth();updateConnection(true,'In-person booth');$('remoteEmpty').textContent='In-person mode';await enableCamera();await goPhase(1);
   }
 
-  async function startSession(){
-    if(!localStream){ toast('Enable your camera first'); return; }
-    if(!soloMode && !isHost){ toast('The host starts the shared session'); return; }
-    resetShots();
-    for(let i=0;i<6;i++){
-      const poseIndex=i%poses.length; const seconds=Number($('delaySelect').value); const startAt=Date.now()+(seconds===0?0:900);
-      if(dataConn?.open) dataConn.send({type:'countdown',startAt,delay:seconds,poseIndex});
-      await runCountdownAt(startAt,seconds,poseIndex,true);
-      await delay(650);
-    }
-    if(dataConn?.open) dataConn.send({type:'sessionDone'}); await goPhase(2);
-  }
+  async function startSession(){return beginAutoSession()}
 
   async function captureOne(){
     if(!localStream){toast('Enable your camera first');return}
@@ -531,36 +583,23 @@
     await delay(220); $('countdown').classList.remove('show');
   }
 
-  function drawVideoCover(ctx, video, x,y,w,h){
-    if(!video.videoWidth){ ctx.fillStyle='#222';ctx.fillRect(x,y,w,h);return; }
-    const vw=video.videoWidth,vh=video.videoHeight, scale=Math.max(w/vw,h/vh), sw=w/scale, sh=h/scale, sx=(vw-sw)/2, sy=(vh-sh)/2;
-    ctx.save(); if(mirrorMode){ctx.translate(x+w,y);ctx.scale(-1,1);ctx.drawImage(video,sx,sy,sw,sh,0,0,w,h)}else{ctx.drawImage(video,sx,sy,sw,sh,x,y,w,h)} ctx.restore();
+  function drawVideoCover(ctx,video,x,y,w,h){
+    if(!video.videoWidth){ctx.fillStyle='#222';ctx.fillRect(x,y,w,h);return}
+    const vw=video.videoWidth,vh=video.videoHeight,scale=Math.max(w/vw,h/vh),sw=w/scale,sh=h/scale,sx=(vw-sw)/2,sy=(vh-sh)/2;
+    const shouldMirror=video===$('localVideo')&&cameraFacing==='user'&&mirrorMode;
+    ctx.save();
+    if(shouldMirror){ctx.translate(x+w,y);ctx.scale(-1,1);ctx.drawImage(video,sx,sy,sw,sh,0,0,w,h)}
+    else ctx.drawImage(video,sx,sy,sw,sh,x,y,w,h);
+    ctx.restore()
   }
 
   function takeCompositeShot(){
-    const local=$('localVideo'),remote=$('remoteVideo'),hasRemote=!soloMode && remote.srcObject && remote.videoWidth;
-    const c=document.createElement('canvas'),ctx=c.getContext('2d');
-    if(!hasRemote){
-      c.width=local.videoWidth||1280;c.height=local.videoHeight||720;
-      ctx.save();
-      if(cameraFacing==='user'&&mirrorMode){ctx.translate(c.width,0);ctx.scale(-1,1)}
-      ctx.drawImage(local,0,0,c.width,c.height);
-      ctx.restore();
-    }else{
-      c.width=1200;c.height=800;
-      drawVideoCover(ctx,local,0,0,600,800);drawVideoCover(ctx,remote,600,0,600,800);
-      ctx.fillStyle='rgba(255,255,255,.55)';ctx.fillRect(598,0,4,800)
-    }
-    const data=c.toDataURL('image/jpeg',.97);shots.push(data);
-    const idx=shots.length-1;if(selected.size===0){selected.add(idx);activePhotoIndex=idx}
+    const local=$('localVideo'),remote=$('remoteVideo'),hasRemote=!soloMode&&remote.srcObject&&remote.videoWidth;
+    const c=document.createElement('canvas'),ctx=c.getContext('2d');c.width=1600;c.height=1200;
+    if(!hasRemote)drawVideoCover(ctx,local,0,0,c.width,c.height);
+    else{drawVideoCover(ctx,local,0,0,800,1200);drawVideoCover(ctx,remote,800,0,800,1200);ctx.fillStyle='rgba(255,255,255,.65)';ctx.fillRect(797,0,6,1200)}
+    const data=c.toDataURL('image/jpeg',.97);shots.push(data);const idx=shots.length-1;
     ensureCrop(idx);renderShots();updateCaptureUI();
-  }
-
-  function updateCaptureUI(){
-    const count=shots.length;
-    if($('captureCount'))$('captureCount').textContent=count+' photo'+(count===1?'':'s')+' captured';
-    if($('toSelectBtn'))$('toSelectBtn').disabled=count===0;
-    if($('toStyleBtn'))$('toStyleBtn').disabled=selected.size===0;
   }
 
   function renderShots(){
@@ -579,9 +618,7 @@
     if(selected.size>=1){
       if(activePhotoIndex===null||!selected.has(activePhotoIndex))activePhotoIndex=[...selected][0];
       renderPhotoTabs();syncCropControls();renderStrip();
-    }else{
-      activePhotoIndex=null;renderPhotoTabs();
-    }
+    }else{activePhotoIndex=null;renderPhotoTabs()}
     updateCaptureUI();
   }
 
@@ -652,25 +689,50 @@
 
 
   const filterNames=[['none','Natural'],['warm','Warm'],['mono','B&W'],['soft','Soft'],['sepia','Sepia'],['cool','Cool'],['vintage','Vintage'],['bright','Bright'],['fade','Faded'],['contrast','Punchy']];
-  function setStep(n){[1,2,3,4].forEach(i=>{const e=$('step'+i);if(e)e.classList.toggle('on',i===n)})}
+  function setStep(n){[1,2,3,4,5,6,7].forEach(i=>{const e=$('step'+i);if(e)e.classList.toggle('on',i===n)})}
   async function goPhase(n){
-    if(n===2 && shots.length===0){toast('Take or add a photo first.');return}
-    if(n===3 && selected.size===0){toast('Choose at least one photo first.');return}
-    if(n===4 && selected.size===0){toast('Choose at least one photo first.');return}
+    if(n>=3&&shots.length===0){toast('Take a session first.');return}
+    if(n>=4&&selected.size===0){toast('Choose at least one favorite first.');return}
     currentPhase=n;setStep(n);
-    $('shootPhase')?.classList.toggle('phase-hidden',n!==1);
-    $('shootActions')?.classList.toggle('phase-hidden',n!==1);
-    $('selectPhase')?.classList.toggle('phase-hidden',n!==2);
-    const editor=$('editor');
-    if(editor){editor.classList.toggle('phase-hidden',n!==3);editor.classList.toggle('active',n===3&&selected.size>0)}
-    $('savePhase')?.classList.toggle('phase-hidden',n!==4);
-    if(n===3){renderPhotoTabs();syncCropControls();await renderStrip()}
-    if(n===4){await renderStrip();syncFinalCanvas()}
-    const booth=$('booth');if(booth)booth.scrollIntoView({behavior:'smooth',block:'start'});
+    const map={1:'setupPhase',2:'capturePhase',3:'selectPhase',4:'framePhase',5:'filterPhase',6:'finishPhase',7:'savePhase'};
+    Object.values(map).forEach(id=>$(id)?.classList.add('phase-hidden'));
+    $(map[n])?.classList.remove('phase-hidden');
+    const showPreview=n>=4&&n<=6;
+    $('previewDock')?.classList.toggle('phase-hidden',!showPreview);
+    if(showPreview){renderPhotoTabs();syncCropControls();await renderStrip()}
+    if(n===7){await renderStrip();syncFinalCanvas()}
+    $('booth')?.scrollIntoView({behavior:'smooth',block:'start'});
   }
   function syncFinalCanvas(){
     const src=$('stripCanvas'),dst=$('finalCanvas');if(!src||!dst)return;
     dst.width=src.width;dst.height=src.height;const x=dst.getContext('2d');x.clearRect(0,0,dst.width,dst.height);x.drawImage(src,0,0)
+  }
+  function setSessionCount(n,el){
+    sessionCount=n;
+    document.querySelectorAll('.choice-btn').forEach(b=>b.classList.remove('on'));
+    el?.classList.add('on');
+  }
+  function updateSessionProgress(done){
+    if($('captureProgressText'))$('captureProgressText').textContent='Shot '+Math.min(done+1,sessionCount)+' of '+sessionCount;
+    if($('captureProgressFill'))$('captureProgressFill').style.width=((done/sessionCount)*100)+'%';
+  }
+  function cancelAutoSession(){sessionCancelled=true;toast('Session cancelled');goPhase(1)}
+  async function beginAutoSession(){
+    if(!localStream){toast('Enable your camera first');await enableCamera();if(!localStream)return}
+    if(!soloMode&&!isHost){toast('The host starts the shared session');return}
+    sessionCancelled=false;shots=[];selected.clear();cropState={};activePhotoIndex=null;frameRects=[];if($('shots'))$('shots').innerHTML='';
+    updateSessionProgress(0);await goPhase(2);await delay(350);
+    for(let i=0;i<sessionCount;i++){
+      if(sessionCancelled)return;
+      updateSessionProgress(i);
+      const poseIndex=i%poses.length,seconds=Number($('delaySelect').value),startAt=Date.now()+(seconds===0?120:500);
+      if(dataConn?.open)dataConn.send({type:'countdown',startAt,delay:seconds,poseIndex});
+      await runCountdownAt(startAt,seconds,poseIndex,true);
+      updateSessionProgress(i+1);
+      if(i<sessionCount-1)await delay(seconds===0?650:500);
+    }
+    if(dataConn?.open)dataConn.send({type:'sessionDone'});
+    if(!sessionCancelled)await goPhase(3);
   }
   function toggleMirror(){
     if(cameraFacing!=='user')return;
@@ -708,8 +770,8 @@
     }ctx.putImageData(im,0,0)
   }
   function ensureCrop(i){
-    if(!cropState[i])cropState[i]={zoom:1,panX:0,panY:0,fit:'contain'};
-    if(!cropState[i].fit)cropState[i].fit='contain';
+    if(!cropState[i])cropState[i]={zoom:1,panX:0,panY:0,fit:'cover'};
+    if(!cropState[i].fit)cropState[i].fit='cover';
     return cropState[i]
   }
   function syncCropControls(){
@@ -724,7 +786,7 @@
   }
   function setActiveZoom(v){
     if(activePhotoIndex===null)return;
-    ensureCrop(activePhotoIndex).zoom=Math.max(.25,Math.min(4,Number(v)/100));
+    ensureCrop(activePhotoIndex).zoom=Math.max(.7,Math.min(1.8,Number(v)/100));
     renderStrip()
   }
   function setFitMode(mode){
@@ -738,7 +800,7 @@
   }
   function resetActivePhoto(){
     if(activePhotoIndex===null)return;
-    cropState[activePhotoIndex]={zoom:1,panX:0,panY:0,fit:'contain'};
+    cropState[activePhotoIndex]={zoom:1,panX:0,panY:0,fit:'cover'};
     syncCropControls();renderStrip()
   }
 
@@ -832,7 +894,7 @@
       ctx.restore()
     }
     drawCharacterDecor();
-    const dark=frameColor.toLowerCase()==='#1d1d1d'||layoutMode==='film';ctx.fillStyle=dark?'#fff':'#1b1a18';ctx.textAlign='center';ctx.font='600 '+Math.max(28,Math.round(W*.027))+'px DM Sans, sans-serif';ctx.fillText(($('caption').value||'our little moment ♡').slice(0,40),W/2,H-45);ctx.font='500 '+Math.max(17,Math.round(W*.014))+'px DM Sans, sans-serif';ctx.globalAlpha=.7;ctx.fillText(new Date().toLocaleDateString(),W/2,H-18);ctx.globalAlpha=1;saveStyle();syncFloatingPreview();if(currentPhase===4)syncFinalCanvas()
+    const dark=frameColor.toLowerCase()==='#1d1d1d'||layoutMode==='film';ctx.fillStyle=dark?'#fff':'#1b1a18';ctx.textAlign='center';ctx.font='600 '+Math.max(28,Math.round(W*.027))+'px DM Sans, sans-serif';ctx.fillText(($('caption').value||'our little moment ♡').slice(0,40),W/2,H-45);ctx.font='500 '+Math.max(17,Math.round(W*.014))+'px DM Sans, sans-serif';ctx.globalAlpha=.7;ctx.fillText(new Date().toLocaleDateString(),W/2,H-18);ctx.globalAlpha=1;saveStyle();syncFloatingPreview();if(currentPhase===7)syncFinalCanvas()
   }
 
   function canvasPoint(e){const c=$('stripCanvas'),r=c.getBoundingClientRect(),p=e.touches?e.touches[0]:e;return{x:(p.clientX-r.left)*(c.width/r.width),y:(p.clientY-r.top)*(c.height/r.height)}}
@@ -854,15 +916,15 @@
     if(should)syncFloatingPreview()
   }
   async function getBlob(){await renderStrip();return await new Promise(r=>$('stripCanvas').toBlob(r,'image/png',1))}
-  async function downloadStrip(){const b=await getBlob(),a=document.createElement('a');a.download='pias-booth-'+Date.now()+'.png';a.href=URL.createObjectURL(b);a.click();URL.revokeObjectURL(a.href);goPhase(4)}
-  async function shareStrip(){const b=await getBlob(),f=new File([b],'pias-booth.png',{type:'image/png'});if(navigator.canShare?.({files:[f]})){await navigator.share({files:[f],title:"Pia's Booth"});goPhase(4)}else downloadStrip()}
+  async function downloadStrip(){const b=await getBlob(),a=document.createElement('a');a.download='pias-booth-'+Date.now()+'.png';a.href=URL.createObjectURL(b);a.click();URL.revokeObjectURL(a.href);goPhase(7)}
+  async function shareStrip(){const b=await getBlob(),f=new File([b],'pias-booth.png',{type:'image/png'});if(navigator.canShare?.({files:[f]})){await navigator.share({files:[f],title:"Pia's Booth"});goPhase(7)}else downloadStrip()}
   $('photoImport').addEventListener('change',async e=>{
     for(const f of [...e.target.files].slice(0,12-shots.length)){
       const data=await new Promise((resolve,reject)=>{const rd=new FileReader();rd.onload=()=>resolve(rd.result);rd.onerror=reject;rd.readAsDataURL(f)});
       shots.push(data);const idx=shots.length-1;ensureCrop(idx);
       if(selected.size===0){selected.add(idx);activePhotoIndex=idx}
     }
-    e.target.value='';renderShots();goPhase(2)
+    e.target.value='';renderShots();goPhase(3)
   });
   window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;if($('sideInstallBtn'))$('sideInstallBtn').style.display='grid'});if($('sideInstallBtn'))$('sideInstallBtn').onclick=async()=>{if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('sideInstallBtn').style.display='none'}};
   if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
