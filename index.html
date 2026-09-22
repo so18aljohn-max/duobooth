@@ -81,7 +81,16 @@
     .shot .num{position:absolute;left:6px;bottom:6px;background:#fff;border:1px solid #111;border-radius:999px;padding:3px 7px;font-size:11px;font-weight:800}
     .editor{display:none;margin-top:20px}.editor.active{display:grid;grid-template-columns:360px 1fr;gap:20px;align-items:start}
     .strip-card{border:2px solid var(--line);border-radius:18px;background:#fff;padding:14px;box-shadow:var(--shadow)}
-    #stripCanvas{width:100%;height:auto;border-radius:10px;display:block;background:white}
+    #stripCanvas{width:100%;height:auto;border-radius:10px;display:block;background:white;touch-action:none;cursor:grab}
+    #stripCanvas.dragging{cursor:grabbing}
+    .crop-tools{margin-top:16px;padding:14px;border:2px dashed var(--line);border-radius:14px;background:#fffaf0}
+    .crop-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+    .crop-help{font-size:12px;line-height:1.45;margin:0 0 10px;opacity:.72}
+    .crop-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+    .crop-actions button{border:2px solid var(--line);border-radius:10px;background:white;padding:9px;font-weight:800}
+    .active-photo-badge{display:inline-flex;border:2px solid var(--line);border-radius:999px;padding:5px 9px;background:var(--yellow);font-size:11px;font-weight:800}
+    .shot.active-edit{outline:4px solid var(--yellow);outline-offset:2px}
+    .remote-section{scroll-margin-top:14px}
     .editor-tools{border:2px solid var(--line);border-radius:18px;background:#fff;padding:18px}
     .swatches{display:flex;gap:8px;flex-wrap:wrap}.swatch{width:36px;height:36px;border-radius:50%;border:2px solid var(--line);cursor:pointer}
     .theme-pink{background:#f4c7d2}.theme-blue{background:#c5ddfa}.theme-cream{background:#fff4db}.theme-black{background:#1d1d1d}
@@ -155,15 +164,15 @@
 
     <section class="hero" id="home">
       <div>
-        <span class="eyebrow">portable · solo or together · works in your browser</span>
+        <span class="eyebrow">portable · in-person first · works in your browser</span>
         <h1>One booth.<br>Any place.</h1>
-        <p>Use your phone or laptop as a portable photobooth. Shoot together or solo, choose one to four favorites, then export Polaroids, classic strips, film frames, grids, stories, and more.</p>
+        <p>Set up your phone, open the booth, and start shooting. Choose 1–4 favorites, reposition them freely, then export Polaroids, classic strips, film frames, grids, stories, and more.</p>
         <div class="actions">
-          <button class="btn primary" onclick="scrollToStart()">Open the booth ♡</button>
-          <button class="btn secondary" onclick="startSolo()">Try solo</button>
+          <button class="btn primary" onclick="startSolo()">Start photobooth ♡</button>
+          <button class="btn secondary" onclick="toggleRemoteMode()">Long-distance mode</button>
           <button class="btn" id="installBtn" style="display:none">Install app</button>
         </div>
-        <div class="mini-note">No account required. Captures stay in your browser unless you save or share them. HTTPS is required for camera access.</div>
+        <div class="mini-note">No account required. Tap “Start photobooth,” allow camera access once, place your phone, and shoot. Captures stay in your browser unless you save or share them.</div>
       </div>
       <div class="preview-card" aria-label="photobooth preview">
         <div class="mock-strip">
@@ -173,14 +182,14 @@
       </div>
     </section>
 
-    <section class="section" id="start">
+    <section class="section remote-section" id="start" style="display:none">
       <div class="panel">
-        <h2>Step into the booth.</h2>
-        <div class="muted">Create a room and share the code, or join your partner's room.</div>
+        <h2>Long-distance mode.</h2>
+        <div class="muted">Optional: connect two devices when you are in different places.</div>
         <div class="room-grid">
           <div class="card">
             <h3>Create a room</h3>
-            <p class="muted">You become the host and own the shared countdown.</p>
+            <p class="muted">You become the host and control the shared countdown.</p>
             <button class="btn primary" onclick="createRoom()">Create room code</button>
             <div id="hostCode" class="status" style="display:none"></div>
           </div>
@@ -219,8 +228,8 @@
             <div class="pose" id="pose">make half a heart toward the middle ♡</div>
           </div>
           <div class="controls">
-            <div class="connection-badge"><span class="dot" id="connectionDot"></span><span id="connectionText">Not connected</span></div>
-            <button class="btn" onclick="enableCamera()">Enable / retry camera</button>
+            <div class="connection-badge"><span class="dot ok" id="connectionDot"></span><span id="connectionText">In-person booth</span></div>
+            <button class="btn" onclick="enableCamera()">Restart / switch on camera</button>
             <div class="utility-grid" style="margin-top:10px"><button class="utility on" id="mirrorBtn" onclick="toggleMirror()">Mirror on</button><button class="utility" id="gridBtn" onclick="toggleGrid()">Grid off</button></div>
             <label>Shot delay</label>
             <select id="delaySelect"><option value="3">3 seconds</option><option value="5">5 seconds</option><option value="10">10 seconds</option></select>
@@ -228,7 +237,7 @@
             <button class="btn primary" onclick="startSession()">Take 6 photos</button>
             <button class="btn secondary" onclick="captureOne()" style="margin-top:10px">Take one photo</button>
             <button class="btn" onclick="resetShots()" style="margin-top:10px">Clear photos</button>
-            <div class="status" id="boothStatus">Enable your camera. In a shared room, wait until both people are connected.</div>
+            <div class="status" id="boothStatus">Tap Start photobooth above, or restart the camera here if needed.</div>
           </div>
         </div>
 
@@ -263,6 +272,13 @@
             <label>Filter</label>
             <div class="filter-grid" id="filterGrid"></div>
             <select id="filterSelect" style="display:none"><option value="none">Natural</option><option value="warm">Warm</option><option value="mono">B&W</option><option value="soft">Soft</option><option value="sepia">Sepia</option><option value="cool">Cool</option><option value="vintage">Vintage</option><option value="bright">Bright</option><option value="fade">Faded</option><option value="contrast">Punchy</option></select>
+            <div class="crop-tools">
+              <div class="crop-head"><strong>Position photo</strong><span class="active-photo-badge" id="activePhotoLabel">Photo 1</span></div>
+              <p class="crop-help">Tap a photo in the preview, then drag it to reposition. Use the slider to zoom. This works with mouse and touch.</p>
+              <label>Photo zoom</label>
+              <input class="range" id="photoZoom" type="range" min="100" max="300" value="100" step="1" oninput="setActiveZoom(this.value)" />
+              <div class="crop-actions"><button onclick="centerActivePhoto()">Center</button><button onclick="resetActivePhoto()">Reset crop</button></div>
+            </div>
             <label>Filter intensity</label><input class="range" id="filterIntensity" type="range" min="0" max="100" value="75" oninput="saveStyle();renderStrip()" />
             <label>Spacing</label><input class="range" id="frameGap" type="range" min="8" max="42" value="20" oninput="saveStyle();renderStrip()" />
             <label>Caption</label>
@@ -291,7 +307,7 @@
   let peer = null, dataConn = null, mediaCall = null;
   let localStream = null, remoteStream = null;
   let roomCode = null, isHost = false, soloMode = false;
-  let shots = [], selected = new Set(), frameColor = '#f4c7d2', layoutMode='classic', mirrorMode=true, deferredPrompt=null;
+  let shots = [], selected = new Set(), frameColor = '#f4c7d2', layoutMode='classic', mirrorMode=true, deferredPrompt=null, cropState={}, activePhotoIndex=null, frameRects=[], dragState=null;
 
   const $ = id => document.getElementById(id);
   const delay = ms => new Promise(r => setTimeout(r, ms));
@@ -299,6 +315,11 @@
   function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2600); }
   function randomCode(){ return Math.random().toString(36).replace(/[^a-z]/g,'').slice(0,6).toUpperCase().padEnd(6,'X'); }
   function scrollToStart(){ $('start').scrollIntoView({behavior:'smooth'}); }
+  function toggleRemoteMode(){
+    const sec=$('start'); const show=sec.style.display==='none'||!sec.style.display;
+    sec.style.display=show?'block':'none';
+    if(show) sec.scrollIntoView({behavior:'smooth'});
+  }
   function showBooth(){ $('booth').classList.add('active'); $('booth').scrollIntoView({behavior:'smooth'}); }
   function updateConnection(ok, text){ $('connectionDot').classList.toggle('ok',ok); $('connectionText').textContent=text; }
 
@@ -369,8 +390,8 @@
   function onRemoteStream(stream){ remoteStream=stream; $('remoteVideo').srcObject=stream; $('remoteEmpty').classList.add('hidden'); updateConnection(true,'Both cameras connected'); }
 
   async function startSolo(){
-    soloMode=true; isHost=true; roomCode='SOLO'; $('stage').classList.add('solo-stage'); $('roomLabel').textContent='Solo booth'; showBooth(); updateConnection(true,'Solo mode');
-    $('remoteEmpty').textContent='Solo mode — your photo will fill the strip'; await enableCamera();
+    soloMode=true; isHost=true; roomCode='LOCAL'; $('stage').classList.add('solo-stage'); $('roomLabel').textContent='In-person photobooth'; showBooth(); updateConnection(true,'In-person booth');
+    $('remoteEmpty').textContent='In-person mode'; await enableCamera();
   }
 
   async function startSession(){
@@ -415,24 +436,38 @@
     else{ drawVideoCover(ctx,$('localVideo'),0,0,600,800); drawVideoCover(ctx,$('remoteVideo'),600,0,600,800); }
     // seam
     if(!soloMode && $('remoteVideo').srcObject){ctx.fillStyle='rgba(255,255,255,.55)';ctx.fillRect(598,0,4,800)}
-    const data=c.toDataURL('image/jpeg',.92); shots.push(data); if(selected.size===0) selected.add(shots.length-1); renderShots(); setStep(2);
+    const data=c.toDataURL('image/jpeg',.92); shots.push(data); if(selected.size===0){selected.add(shots.length-1);activePhotoIndex=shots.length-1;} ensureCrop(shots.length-1); renderShots(); setStep(2);
   }
 
   function renderShots(){
     const wrap=$('shots'); wrap.innerHTML='';
-    shots.forEach((src,i)=>{ const el=document.createElement('div'); el.className='shot'+(selected.has(i)?' selected':''); el.onclick=()=>toggleSelect(i); el.innerHTML=`<img src="${src}" alt="shot ${i+1}"><span class="num">${i+1}</span>`; wrap.appendChild(el); });
+    shots.forEach((src,i)=>{
+      const el=document.createElement('div');
+      el.className='shot'+(selected.has(i)?' selected':'')+(activePhotoIndex===i?' active-edit':'');
+      el.onclick=()=>toggleSelect(i);
+      el.innerHTML=`<img src="${src}" alt="shot ${i+1}"><span class="num">${i+1}</span>`;
+      wrap.appendChild(el);
+    });
     if(shots.length){ $('boothStatus').textContent=`${shots.length} photo${shots.length===1?'':'s'} captured. Tap any 1–4 photos to edit.`; }
-    if(selected.size>=1){ $('editor').classList.add('active'); setStep(3); renderStrip(); }
-    else $('editor').classList.remove('active');
+    if(selected.size>=1){
+      if(activePhotoIndex===null || !selected.has(activePhotoIndex)) activePhotoIndex=[...selected][0];
+      $('editor').classList.add('active'); setStep(3); syncCropControls(); renderStrip();
+    } else { activePhotoIndex=null; $('editor').classList.remove('active'); }
   }
 
   function toggleSelect(i){
-    if(selected.has(i)) selected.delete(i);
-    else { if(selected.size>=4){toast('You can combine up to four photos.');return;} selected.add(i); }
+    if(selected.has(i)){
+      if(activePhotoIndex===i && selected.size===1){ selected.delete(i); activePhotoIndex=null; }
+      else if(activePhotoIndex===i){ activePhotoIndex=[...selected].find(x=>x!==i) ?? null; selected.delete(i); }
+      else { activePhotoIndex=i; ensureCrop(i); }
+    } else {
+      if(selected.size>=4){toast('You can combine up to four photos.');return;}
+      selected.add(i);activePhotoIndex=i;ensureCrop(i);
+    }
     renderShots();
   }
 
-  function resetShots(){ shots=[];selected.clear();$('shots').innerHTML='';$('editor').classList.remove('active'); setStep(1); }
+  function resetShots(){ shots=[];selected.clear();cropState={};activePhotoIndex=null;frameRects=[];$('shots').innerHTML='';$('editor').classList.remove('active'); setStep(1); }
   function setFrame(c){ frameColor=c; renderStrip(); }
 
   function applyFilter(ctx,type,w,h){
@@ -490,62 +525,69 @@
       d[i]=r0+(Math.max(0,Math.min(255,r))-r0)*a;d[i+1]=g0+(Math.max(0,Math.min(255,g))-g0)*a;d[i+2]=b0+(Math.max(0,Math.min(255,b))-b0)*a;
     }ctx.putImageData(im,0,0)
   }
+  function ensureCrop(i){if(!cropState[i])cropState[i]={zoom:1,panX:0,panY:0};return cropState[i]}
+  function syncCropControls(){
+    if(activePhotoIndex===null)return;
+    const c=ensureCrop(activePhotoIndex);
+    if($('photoZoom'))$('photoZoom').value=Math.round(c.zoom*100);
+    if($('activePhotoLabel'))$('activePhotoLabel').textContent='Photo '+(activePhotoIndex+1);
+  }
+  function setActiveZoom(v){if(activePhotoIndex===null)return;ensureCrop(activePhotoIndex).zoom=Math.max(1,Math.min(3,Number(v)/100));renderStrip()}
+  function centerActivePhoto(){if(activePhotoIndex===null)return;const c=ensureCrop(activePhotoIndex);c.panX=0;c.panY=0;renderStrip()}
+  function resetActivePhoto(){if(activePhotoIndex===null)return;cropState[activePhotoIndex]={zoom:1,panX:0,panY:0};syncCropControls();renderStrip()}
+
   async function renderStrip(){
-    const count=selected.size;
-    if(count<1)return;
-    const canvas=$('stripCanvas'),ctx=canvas.getContext('2d'),picks=[...selected].sort((a,b)=>a-b),imgs=[];
+    const count=selected.size;if(count<1)return;
+    const canvas=$('stripCanvas'),ctx=canvas.getContext('2d'),picks=[...selected].sort((a,b)=>a-b),imgs=[];frameRects=[];
     for(const p of picks){const im=new Image();im.src=shots[p];await im.decode();imgs.push(im)}
-    let W=900,H=1500;
-    if(['grid','square'].includes(layoutMode)){W=1200;H=1200}
-    if(layoutMode==='wide'){W=1600;H=900}
-    if(layoutMode==='story'){W=1080;H=1920}
-    if(layoutMode==='postcard'){W=1600;H=1050}
-    if(layoutMode==='double'){W=1500;H=1500}
-    if(layoutMode==='polaroid'){W=count===1?1100:1200;H=count===1?1350:1450}
-    if(layoutMode==='film'){W=1000;H=1600}
-    canvas.width=W;canvas.height=H;ctx.fillStyle=frameColor;ctx.fillRect(0,0,W,H);
-    const gap=Number($('frameGap')?.value)||20;
-    async function draw(im,x,y,w,h,r=12){const tmp=document.createElement('canvas');tmp.width=Math.max(1,Math.round(w));tmp.height=Math.max(1,Math.round(h));const tx=tmp.getContext('2d'),ratio=Math.max(w/im.width,h/im.height),dw=im.width*ratio,dh=im.height*ratio;tx.drawImage(im,(w-dw)/2,(h-dh)/2,dw,dh);applyFilter(tx,$('filterSelect').value,tmp.width,tmp.height);ctx.save();ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.clip();ctx.drawImage(tmp,x,y,w,h);ctx.restore()}
-    async function autoGrid(pad=45,bottom=120){
-      if(count===1){await draw(imgs[0],pad,pad,W-pad*2,H-pad-bottom,16);return}
-      if(count===2){const h=(H-pad*2-bottom-gap)/2;for(let i=0;i<2;i++)await draw(imgs[i],pad,pad+i*(h+gap),W-pad*2,h,16);return}
-      const cols=2,rows=2,pw=(W-pad*2-gap)/2,ph=(H-pad*2-bottom-gap)/2;
-      for(let i=0;i<count;i++)await draw(imgs[i],pad+(i%cols)*(pw+gap),pad+Math.floor(i/cols)*(ph+gap),pw,ph,14)
+    let W=900,H=1500;if(['grid','square'].includes(layoutMode)){W=1200;H=1200}if(layoutMode==='wide'){W=1600;H=900}if(layoutMode==='story'){W=1080;H=1920}if(layoutMode==='postcard'){W=1600;H=1050}if(layoutMode==='double'){W=1500;H=1500}if(layoutMode==='polaroid'){W=count===1?1100:1200;H=count===1?1350:1450}if(layoutMode==='film'){W=1000;H=1600}
+    canvas.width=W;canvas.height=H;ctx.fillStyle=frameColor;ctx.fillRect(0,0,W,H);const gap=Number($('frameGap')?.value)||20;
+    async function draw(im,shotIndex,x,y,w,h,r=12){
+      frameRects.push({shotIndex,x,y,w,h});
+      const tmp=document.createElement('canvas');tmp.width=Math.max(1,Math.round(w));tmp.height=Math.max(1,Math.round(h));const tx=tmp.getContext('2d'),crop=ensureCrop(shotIndex);
+      const cover=Math.max(w/im.width,h/im.height),scale=cover*crop.zoom,dw=im.width*scale,dh=im.height*scale,overflowX=Math.max(0,dw-w),overflowY=Math.max(0,dh-h);
+      const dx=(w-dw)/2 + crop.panX*(overflowX/2),dy=(h-dh)/2 + crop.panY*(overflowY/2);
+      tx.drawImage(im,dx,dy,dw,dh);applyFilter(tx,$('filterSelect').value,tmp.width,tmp.height);
+      ctx.save();ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.clip();ctx.drawImage(tmp,x,y,w,h);
+      if(activePhotoIndex===shotIndex){ctx.strokeStyle='rgba(255,255,255,.96)';ctx.lineWidth=Math.max(4,W*.004);ctx.strokeRect(x+3,y+3,w-6,h-6)}
+      ctx.restore()
     }
-    if(layoutMode==='classic'){const pad=48,cap=120,h=(H-pad*2-cap-gap*(count-1))/count;for(let i=0;i<count;i++)await draw(imgs[i],pad,pad+i*(h+gap),W-pad*2,h,14)}
-    if(layoutMode==='double'){
-      if(count===1){const sw=(W-gap*3)/2;for(let col=0;col<2;col++)await draw(imgs[0],gap+(sw+gap)*col,gap,sw,H-150-gap,10)}
-      else{const sw=(W-gap*3)/2,ph=(H-150-gap*(count+1))/count;for(let col=0;col<2;col++)for(let i=0;i<count;i++)await draw(imgs[i],gap+(sw+gap)*col,gap+i*(ph+gap),sw,ph,8)}
-    }
-    if(['grid','square'].includes(layoutMode)) await autoGrid(45,115);
-    if(layoutMode==='polaroid'){
-      ctx.fillStyle='#fff';ctx.fillRect(70,50,W-140,H-135);
-      if(count===1){await draw(imgs[0],105,90,W-210,H-310,4)}
-      else{const pad=110,available=H-260,ph=(available-gap*(count-1))/count;for(let i=0;i<count;i++)await draw(imgs[i],pad,85+i*(ph+gap),W-pad*2,ph,4)}
-    }
-    if(layoutMode==='film'){
-      ctx.fillStyle='#171717';ctx.fillRect(0,0,W,H);for(let y=22;y<H-22;y+=45){ctx.fillStyle='#f7efe2';ctx.fillRect(18,y,22,25);ctx.fillRect(W-40,y,22,25)}
-      const pad=62,ph=(H-124-gap*(count-1)-90)/count;for(let i=0;i<count;i++)await draw(imgs[i],pad,62+i*(ph+gap),W-pad*2,ph,2)
-    }
-    if(layoutMode==='story'){const pad=60,ph=(H-250-gap*(count-1))/count;for(let i=0;i<count;i++)await draw(imgs[i],pad,80+i*(ph+gap),W-pad*2,ph,18)}
-    if(layoutMode==='wide'){
-      if(count===1)await draw(imgs[0],38,38,W-76,H-170,18);
-      else{const cols=count===2?2:2,rows=Math.ceil(count/2),pw=(W-76-gap)/2,ph=(H-76-95-gap*(rows-1))/rows;for(let i=0;i<count;i++)await draw(imgs[i],38+(i%2)*(pw+gap),38+Math.floor(i/2)*(ph+gap),pw,ph,16)}
-    }
-    if(layoutMode==='postcard'){
-      const pad=45;
-      if(count===1)await draw(imgs[0],pad,pad,W-pad*2,H-pad*2-105,18);
-      else{const pw=Math.round(W*.61),ph=H-pad*2;await draw(imgs[0],pad,pad,pw,ph,18);const side=count-1,sh=(ph-gap*(side-1))/side;for(let i=1;i<count;i++)await draw(imgs[i],pw+pad+gap,pad+(i-1)*(sh+gap),W-pw-pad*2-gap,sh,10)}
-    }
+    async function autoGrid(pad=45,bottom=120){if(count===1){await draw(imgs[0],picks[0],pad,pad,W-pad*2,H-pad-bottom,16);return}if(count===2){const h=(H-pad*2-bottom-gap)/2;for(let i=0;i<2;i++)await draw(imgs[i],picks[i],pad,pad+i*(h+gap),W-pad*2,h,16);return}const pw=(W-pad*2-gap)/2,ph=(H-pad*2-bottom-gap)/2;for(let i=0;i<count;i++)await draw(imgs[i],picks[i],pad+(i%2)*(pw+gap),pad+Math.floor(i/2)*(ph+gap),pw,ph,14)}
+    if(layoutMode==='classic'){const pad=48,cap=120,h=(H-pad*2-cap-gap*(count-1))/count;for(let i=0;i<count;i++)await draw(imgs[i],picks[i],pad,pad+i*(h+gap),W-pad*2,h,14)}
+    if(layoutMode==='double'){if(count===1){const sw=(W-gap*3)/2;for(let col=0;col<2;col++)await draw(imgs[0],picks[0],gap+(sw+gap)*col,gap,sw,H-150-gap,10)}else{const sw=(W-gap*3)/2,ph=(H-150-gap*(count+1))/count;for(let col=0;col<2;col++)for(let i=0;i<count;i++)await draw(imgs[i],picks[i],gap+(sw+gap)*col,gap+i*(ph+gap),sw,ph,8)}}
+    if(['grid','square'].includes(layoutMode))await autoGrid(45,115);
+    if(layoutMode==='polaroid'){ctx.fillStyle='#fff';ctx.fillRect(70,50,W-140,H-135);if(count===1){await draw(imgs[0],picks[0],105,90,W-210,H-310,4)}else{const pad=110,available=H-260,ph=(available-gap*(count-1))/count;for(let i=0;i<count;i++)await draw(imgs[i],picks[i],pad,85+i*(ph+gap),W-pad*2,ph,4)}}
+    if(layoutMode==='film'){ctx.fillStyle='#171717';ctx.fillRect(0,0,W,H);for(let y=22;y<H-22;y+=45){ctx.fillStyle='#f7efe2';ctx.fillRect(18,y,22,25);ctx.fillRect(W-40,y,22,25)}const pad=62,ph=(H-124-gap*(count-1)-90)/count;for(let i=0;i<count;i++)await draw(imgs[i],picks[i],pad,62+i*(ph+gap),W-pad*2,ph,2)}
+    if(layoutMode==='story'){const pad=60,ph=(H-250-gap*(count-1))/count;for(let i=0;i<count;i++)await draw(imgs[i],picks[i],pad,80+i*(ph+gap),W-pad*2,ph,18)}
+    if(layoutMode==='wide'){if(count===1)await draw(imgs[0],picks[0],38,38,W-76,H-170,18);else{const rows=Math.ceil(count/2),pw=(W-76-gap)/2,ph=(H-76-95-gap*(rows-1))/rows;for(let i=0;i<count;i++)await draw(imgs[i],picks[i],38+(i%2)*(pw+gap),38+Math.floor(i/2)*(ph+gap),pw,ph,16)}}
+    if(layoutMode==='postcard'){const pad=45;if(count===1)await draw(imgs[0],picks[0],pad,pad,W-pad*2,H-pad*2-105,18);else{const pw=Math.round(W*.61),ph=H-pad*2;await draw(imgs[0],picks[0],pad,pad,pw,ph,18);const side=count-1,sh=(ph-gap*(side-1))/side;for(let i=1;i<count;i++)await draw(imgs[i],picks[i],pw+pad+gap,pad+(i-1)*(sh+gap),W-pw-pad*2-gap,sh,10)}}
     const dark=frameColor.toLowerCase()==='#1d1d1d'||layoutMode==='film';ctx.fillStyle=dark?'#fff':'#1b1a18';ctx.textAlign='center';ctx.font='600 '+Math.max(28,Math.round(W*.027))+'px DM Sans, sans-serif';ctx.fillText(($('caption').value||'our little moment ♡').slice(0,40),W/2,H-45);ctx.font='500 '+Math.max(17,Math.round(W*.014))+'px DM Sans, sans-serif';ctx.globalAlpha=.7;ctx.fillText(new Date().toLocaleDateString(),W/2,H-18);ctx.globalAlpha=1;saveStyle()
   }
+
+  function canvasPoint(e){const c=$('stripCanvas'),r=c.getBoundingClientRect(),p=e.touches?e.touches[0]:e;return{x:(p.clientX-r.left)*(c.width/r.width),y:(p.clientY-r.top)*(c.height/r.height)}}
+  function rectAt(pt){for(let i=frameRects.length-1;i>=0;i--){const r=frameRects[i];if(pt.x>=r.x&&pt.x<=r.x+r.w&&pt.y>=r.y&&pt.y<=r.y+r.h)return r}return null}
+  function startCanvasDrag(e){if(selected.size<1)return;const pt=canvasPoint(e),r=rectAt(pt);if(!r)return;activePhotoIndex=r.shotIndex;ensureCrop(activePhotoIndex);syncCropControls();renderShots();dragState={startX:pt.x,startY:pt.y,panX:cropState[activePhotoIndex].panX,panY:cropState[activePhotoIndex].panY,rect:r};$('stripCanvas').classList.add('dragging');if(e.cancelable)e.preventDefault()}
+  function moveCanvasDrag(e){if(!dragState||activePhotoIndex===null)return;const pt=canvasPoint(e),c=ensureCrop(activePhotoIndex),dx=(pt.x-dragState.startX)/Math.max(1,dragState.rect.w),dy=(pt.y-dragState.startY)/Math.max(1,dragState.rect.h);c.panX=Math.max(-1,Math.min(1,dragState.panX+dx*2.2));c.panY=Math.max(-1,Math.min(1,dragState.panY+dy*2.2));renderStrip();if(e.cancelable)e.preventDefault()}
+  function endCanvasDrag(){dragState=null;$('stripCanvas').classList.remove('dragging')}
+
   async function getBlob(){await renderStrip();return await new Promise(r=>$('stripCanvas').toBlob(r,'image/png',1))}
   async function downloadStrip(){const b=await getBlob(),a=document.createElement('a');a.download='duobooth-'+Date.now()+'.png';a.href=URL.createObjectURL(b);a.click();URL.revokeObjectURL(a.href);setStep(4)}
   async function shareStrip(){const b=await getBlob(),f=new File([b],'duobooth.png',{type:'image/png'});if(navigator.canShare?.({files:[f]})){await navigator.share({files:[f],title:'DuoBooth'});setStep(4)}else downloadStrip()}
-  $('photoImport').addEventListener('change',async e=>{for(const f of [...e.target.files].slice(0,12-shots.length)){const u=URL.createObjectURL(f),im=new Image();im.src=u;await im.decode();const c=document.createElement('canvas');c.width=1200;c.height=800;const x=c.getContext('2d'),r=Math.max(c.width/im.width,c.height/im.height),dw=im.width*r,dh=im.height*r;x.drawImage(im,(c.width-dw)/2,(c.height-dh)/2,dw,dh);shots.push(c.toDataURL('image/jpeg',.92)); if(selected.size===0) selected.add(shots.length-1); URL.revokeObjectURL(u)}renderShots();setStep(2)});
+  $('photoImport').addEventListener('change',async e=>{
+    for(const f of [...e.target.files].slice(0,12-shots.length)){
+      const data=await new Promise((resolve,reject)=>{const rd=new FileReader();rd.onload=()=>resolve(rd.result);rd.onerror=reject;rd.readAsDataURL(f)});
+      shots.push(data);const idx=shots.length-1;ensureCrop(idx);
+      if(selected.size===0){selected.add(idx);activePhotoIndex=idx}
+    }
+    e.target.value='';renderShots();setStep(2)
+  });
   window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('installBtn').style.display='inline-block'});$('installBtn').onclick=async()=>{if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('installBtn').style.display='none'}};
   if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
   loadStyle();initFilters();
+  const cropCanvas=$('stripCanvas');
+  cropCanvas.addEventListener('pointerdown',startCanvasDrag);
+  cropCanvas.addEventListener('pointermove',moveCanvasDrag);
+  window.addEventListener('pointerup',endCanvasDrag);
 
   $('joinCode').addEventListener('input',e=>e.target.value=e.target.value.toUpperCase().replace(/[^A-Z]/g,''));
 </script>
