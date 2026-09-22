@@ -43,7 +43,7 @@
     .mock-shot{border-radius:8px;min-height:0;position:relative;overflow:hidden;background:linear-gradient(145deg,#f5b6c5,#a8d5ff)}
     .mock-shot::after{content:"♡";font-size:42px;position:absolute;inset:0;display:grid;place-items:center;color:white;text-shadow:0 2px 4px #0003}
     .section{padding:40px 0}
-    .panel{border:2px solid var(--line);border-radius:22px;background:rgba(255,255,255,.94);box-shadow:var(--shadow);padding:20px}
+    .panel{border:2px solid var(--line);border-radius:22px;background:rgba(255,255,255,.94);box-shadow:var(--shadow);padding:20px;overflow:visible}
     .panel h2{font-family:"Playfair Display",serif;font-size:42px;letter-spacing:-.04em;margin:0 0 8px}
     .muted{opacity:.68}
     .room-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:18px}
@@ -79,8 +79,8 @@
     .shot img{width:100%;height:100%;object-fit:cover;display:block}
     .shot.selected::after{content:"✓";position:absolute;right:7px;top:7px;width:28px;height:28px;border-radius:50%;background:var(--green);border:2px solid var(--line);display:grid;place-items:center;font-weight:900}
     .shot .num{position:absolute;left:6px;bottom:6px;background:#fff;border:1px solid #111;border-radius:999px;padding:3px 7px;font-size:11px;font-weight:800}
-    .editor{display:none;margin-top:20px}.editor.active{display:grid;grid-template-columns:360px 1fr;gap:20px;align-items:start}
-    .strip-card{border:2px solid var(--line);border-radius:18px;background:#fff;padding:14px;box-shadow:var(--shadow);position:sticky;top:12px;z-index:6;align-self:start}
+    .editor{display:none;margin-top:20px;overflow:visible}.editor.active{display:grid;grid-template-columns:360px 1fr;gap:20px;align-items:start;overflow:visible}
+    .strip-card{border:2px solid var(--line);border-radius:18px;background:#fff;padding:14px;box-shadow:var(--shadow);position:-webkit-sticky;position:sticky;top:12px;z-index:30;align-self:start}
     #stripCanvas{width:100%;height:auto;border-radius:10px;display:block;background:white;touch-action:none;cursor:grab}
     #stripCanvas.dragging{cursor:grabbing}
     .crop-tools{margin-top:16px;padding:14px;border:2px dashed var(--line);border-radius:14px;background:#fffaf0}
@@ -131,7 +131,7 @@
       .shutter{bottom:52px;width:62px;height:62px}.shutter span{width:45px;height:45px}
       .countdown{font-size:96px}.shots{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
       .shot{border-radius:10px}.editor.active{display:flex;flex-direction:column}
-      .strip-card,.editor-tools{width:100%;min-width:0}.strip-card{position:sticky;top:6px;z-index:10;max-height:48dvh;overflow:hidden;padding:10px}.strip-card #stripCanvas{max-height:calc(48dvh - 20px);width:100%;object-fit:contain;margin:auto}.editor-tools{padding:13px}
+      .strip-card,.editor-tools{width:100%;min-width:0}.strip-card{position:-webkit-sticky;position:sticky;top:4px;z-index:50;max-height:46dvh;overflow:hidden;padding:10px;background:#fff}.strip-card #stripCanvas{display:block;max-height:calc(46dvh - 20px);width:auto;max-width:100%;object-fit:contain;margin:auto}.editor-tools{padding:13px}
       .template-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
       .filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
       .swatches{gap:10px}.swatch{width:42px;height:42px}
@@ -244,7 +244,7 @@
         <div class="importer"><label class="btn secondary" for="photoImport">Add photos from library</label><input id="photoImport" type="file" accept="image/*" multiple><span class="muted" style="font-size:12px">Style existing photos too.</span></div><div id="shots" class="shots"></div>
 
         <div id="editor" class="editor">
-          <div class="strip-card"><canvas id="stripCanvas" width="900" height="1500"></canvas></div>
+          <div class="strip-card"><div class="sticky-label" style="font-size:11px;font-weight:800;margin:0 0 7px;text-align:center;opacity:.65">LIVE EDIT PREVIEW · drag photo to reposition</div><canvas id="stripCanvas" width="900" height="1500"></canvas></div>
           <div class="editor-tools">
             <h3 style="margin-top:0">Finish your frame</h3>
             <p class="muted">Choose 1–4 photos to edit. A single photo works perfectly with Polaroid and other frames. Your last style is remembered on this device.</p>
