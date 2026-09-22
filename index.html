@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DuoBooth — Shared Online Photobooth</title>
+  <meta name="description" content="A portable browser photobooth for solo and long-distance photo strips." />
+  <meta name="theme-color" content="#fff8ee" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
+  <style>
+    :root {
+      --paper:#fff8ee; --ink:#1b1a18; --rose:#f2b7c4; --rose2:#ffdce6;
+      --blue:#b9d9ff; --yellow:#ffe49b; --green:#cce8c5; --line:#1b1a18;
+      --shadow: 7px 7px 0 rgba(27,26,24,.9);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:var(--paper);color:var(--ink);font-family:"DM Sans",system-ui,sans-serif}
+    body{background-image:radial-gradient(#1b1a18 0.7px,transparent .7px);background-size:24px 24px;background-position:-6px -6px}
+    button,input,select{font:inherit}
+    button{cursor:pointer}
+    .app{max-width:1180px;margin:0 auto;padding:20px}
+    .nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0 20px}
+    .brand{font-family:"Playfair Display",serif;font-size:30px;font-weight:600;letter-spacing:-.04em}
+    .brand span{font-style:italic}
+    .pill{border:2px solid var(--line);background:white;border-radius:999px;padding:10px 14px;font-weight:700;box-shadow:3px 3px 0 var(--line)}
+    .hero{display:grid;grid-template-columns:1.08fr .92fr;gap:28px;align-items:center;padding:28px 0 46px}
+    .eyebrow{display:inline-block;border:2px solid var(--line);border-radius:999px;padding:7px 11px;background:var(--yellow);font-size:13px;font-weight:700;transform:rotate(-1deg)}
+    h1{font-family:"Playfair Display",serif;font-size:clamp(54px,8vw,94px);line-height:.88;letter-spacing:-.055em;margin:18px 0 18px}
+    .hero p{font-size:19px;line-height:1.55;max-width:650px}
+    .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px}
+    .btn{border:2px solid var(--line);padding:13px 18px;border-radius:14px;background:white;font-weight:800;box-shadow:var(--shadow);transition:.15s transform,.15s box-shadow}
+    .btn:hover{transform:translate(3px,3px);box-shadow:4px 4px 0 var(--line)}
+    .btn.primary{background:var(--rose)}
+    .btn.secondary{background:var(--blue)}
+    .mini-note{margin-top:16px;font-size:13px;opacity:.7}
+    .preview-card{border:2px solid var(--line);background:#fff;border-radius:22px;padding:16px;box-shadow:var(--shadow);transform:rotate(1.2deg)}
+    .mock-strip{width:100%;aspect-ratio:3/4;border-radius:14px;background:#202020;padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:8px;overflow:hidden}
+    .mock-shot{border-radius:8px;min-height:0;position:relative;overflow:hidden;background:linear-gradient(145deg,#f5b6c5,#a8d5ff)}
+    .mock-shot::after{content:"♡";font-size:42px;position:absolute;inset:0;display:grid;place-items:center;color:white;text-shadow:0 2px 4px #0003}
+    .section{padding:40px 0}
+    .panel{border:2px solid var(--line);border-radius:22px;background:rgba(255,255,255,.94);box-shadow:var(--shadow);padding:20px}
+    .panel h2{font-family:"Playfair Display",serif;font-size:42px;letter-spacing:-.04em;margin:0 0 8px}
+    .muted{opacity:.68}
+    .room-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:18px}
+    .card{border:2px solid var(--line);border-radius:18px;padding:18px;background:#fff}
+    .card h3{margin:0 0 10px;font-size:20px}
+    .input-row{display:flex;gap:9px;flex-wrap:wrap}
+    input,select{border:2px solid var(--line);border-radius:12px;padding:12px 13px;background:#fff;min-width:0}
+    input{flex:1}
+    .status{margin-top:12px;padding:10px 12px;border:2px dashed var(--line);border-radius:12px;background:#fff9d7;font-size:13px}
+    .booth{display:none}
+    .booth.active{display:block}
+    .stage-wrap{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;align-items:start}
+    .stage{position:relative;border:2px solid var(--line);background:#111;border-radius:20px;overflow:hidden;min-height:510px;box-shadow:var(--shadow)}
+    .video-grid{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;background:#222}
+    .video-cell{position:relative;overflow:hidden;border-right:1px solid #ffffff3a}
+    .video-cell:last-child{border-right:0}
+    video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);background:#111}
+    .empty-person{position:absolute;inset:0;display:grid;place-items:center;color:#fff8;text-align:center;padding:24px;background:radial-gradient(circle at 50% 40%,#444,#171717 70%)}
+    .empty-person.hidden{display:none}
+    .stage-overlay{position:absolute;inset:0;pointer-events:none;background:linear-gradient(to bottom,transparent 75%,#0008)}
+    .countdown{position:absolute;inset:0;display:grid;place-items:center;font-family:"Playfair Display",serif;font-size:160px;color:white;text-shadow:0 6px 24px #0008;opacity:0;transition:.15s}
+    .countdown.show{opacity:1}
+    .pose{position:absolute;left:50%;bottom:20px;transform:translateX(-50%);background:#fff;border:2px solid var(--line);border-radius:999px;padding:9px 14px;font-weight:700;white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis}
+    .flash{position:absolute;inset:0;background:white;opacity:0;pointer-events:none}.flash.on{animation:flash .35s ease}
+    @keyframes flash{0%{opacity:0}18%{opacity:1}100%{opacity:0}}
+    .controls{border:2px solid var(--line);border-radius:18px;background:white;padding:16px;box-shadow:var(--shadow)}
+    .controls label{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;display:block;margin:14px 0 6px}
+    .controls .btn{width:100%;box-shadow:4px 4px 0 var(--line)}
+    .connection-badge{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;margin-bottom:10px}
+    .dot{width:10px;height:10px;border-radius:50%;background:#aaa;border:1px solid #222}.dot.ok{background:#64cf77}
+    .shots{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:20px}
+    .shot{position:relative;border:2px solid var(--line);border-radius:12px;overflow:hidden;background:#eee;aspect-ratio:4/3;cursor:pointer}
+    .shot img{width:100%;height:100%;object-fit:cover;display:block}
+    .shot.selected::after{content:"✓";position:absolute;right:7px;top:7px;width:28px;height:28px;border-radius:50%;background:var(--green);border:2px solid var(--line);display:grid;place-items:center;font-weight:900}
+    .shot .num{position:absolute;left:6px;bottom:6px;background:#fff;border:1px solid #111;border-radius:999px;padding:3px 7px;font-size:11px;font-weight:800}
+    .editor{display:none;margin-top:20px}.editor.active{display:grid;grid-template-columns:360px 1fr;gap:20px;align-items:start}
+    .strip-card{border:2px solid var(--line);border-radius:18px;background:#fff;padding:14px;box-shadow:var(--shadow)}
+    #stripCanvas{width:100%;height:auto;border-radius:10px;display:block;background:white}
+    .editor-tools{border:2px solid var(--line);border-radius:18px;background:#fff;padding:18px}
+    .swatches{display:flex;gap:8px;flex-wrap:wrap}.swatch{width:36px;height:36px;border-radius:50%;border:2px solid var(--line);cursor:pointer}
+    .theme-pink{background:#f4c7d2}.theme-blue{background:#c5ddfa}.theme-cream{background:#fff4db}.theme-black{background:#1d1d1d}
+    .footer{padding:42px 0 25px;font-size:13px;opacity:.7;text-align:center}
+    .toast{position:fixed;right:18px;bottom:18px;background:#111;color:#fff;padding:12px 14px;border-radius:12px;display:none;max-width:320px;z-index:20}.toast.show{display:block}
+    @media(max-width:900px){.hero,.stage-wrap,.editor.active{grid-template-columns:1fr}.hero{padding-top:10px}.preview-card{max-width:560px}.stage{min-height:620px}.controls{order:-1}.room-grid{grid-template-columns:1fr}.shots{grid-template-columns:repeat(3,1fr)}.video-grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:560px){.app{padding:13px}.nav{padding-bottom:8px}.brand{font-size:25px}.pill{display:none}h1{font-size:58px}.panel{padding:15px}.panel h2{font-size:34px}.stage{min-height:520px}.video-grid{grid-template-columns:1fr}.video-cell{height:50%;border-right:0;border-bottom:1px solid #ffffff3a}.video-cell:last-child{border-bottom:0}.pose{font-size:12px}.countdown{font-size:110px}}
+  
+    .stepbar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px}.stepchip{border:2px solid var(--line);border-radius:999px;background:#fff;padding:7px 11px;font-size:12px;font-weight:800}.stepchip.on{background:var(--yellow)}
+    .template-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}.template{border:2px solid var(--line);border-radius:12px;background:#fff;padding:9px 7px;font-weight:800;font-size:12px;min-height:62px}.template.on{background:var(--yellow)}
+    .filter-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.filter-chip{border:2px solid var(--line);border-radius:11px;background:#fff;padding:8px 5px;font-weight:800;font-size:11px}.filter-chip.on{background:var(--blue)}
+    .utility-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.utility{border:2px solid var(--line);border-radius:11px;background:#fff;padding:9px;font-weight:800}.utility.on{background:var(--yellow)}
+    .gridline{position:absolute;inset:0;pointer-events:none;display:none;background:linear-gradient(to right,transparent 33%,#fff7 33%,#fff7 33.3%,transparent 33.3%,transparent 66%,#fff7 66%,#fff7 66.3%,transparent 66.3%),linear-gradient(to bottom,transparent 33%,#fff7 33%,#fff7 33.3%,transparent 33.3%,transparent 66%,#fff7 66%,#fff7 66.3%,transparent 66.3%)}.gridline.on{display:block}
+    .importer{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px}.importer input{display:none}.share-row{display:flex;gap:8px;flex-wrap:wrap}.share-row .btn{flex:1}.range{width:100%;accent-color:#111}
+    @media(max-width:700px){.template-grid{grid-template-columns:repeat(2,1fr)}.filter-grid{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <nav class="nav">
+      <div class="brand">duo<span>booth</span> ♡</div>
+      <div class="pill">camera stays peer-to-peer</div>
+    </nav>
+
+    <section class="hero" id="home">
+      <div>
+        <span class="eyebrow">portable · solo or together · works in your browser</span>
+        <h1>One booth.<br>Any place.</h1>
+        <p>Use your phone or laptop as a portable photobooth. Shoot together or solo, choose your best four, then export classic strips, Polaroids, film frames, grids, stories, and more.</p>
+        <div class="actions">
+          <button class="btn primary" onclick="scrollToStart()">Open the booth ♡</button>
+          <button class="btn secondary" onclick="startSolo()">Try solo</button>
+          <button class="btn" id="installBtn" style="display:none">Install app</button>
+        </div>
+        <div class="mini-note">No account required. Captures stay in your browser unless you save or share them. HTTPS is required for camera access.</div>
+      </div>
+      <div class="preview-card" aria-label="photobooth preview">
+        <div class="mock-strip">
+          <div class="mock-shot"></div><div class="mock-shot"></div>
+          <div class="mock-shot"></div><div class="mock-shot"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="start">
+      <div class="panel">
+        <h2>Step into the booth.</h2>
+        <div class="muted">Create a room and share the code, or join your partner's room.</div>
+        <div class="room-grid">
+          <div class="card">
+            <h3>Create a room</h3>
+            <p class="muted">You become the host and own the shared countdown.</p>
+            <button class="btn primary" onclick="createRoom()">Create room code</button>
+            <div id="hostCode" class="status" style="display:none"></div>
+          </div>
+          <div class="card">
+            <h3>Join a room</h3>
+            <div class="input-row">
+              <input id="joinCode" placeholder="Enter 6-letter code" maxlength="6" autocomplete="off" />
+              <button class="btn secondary" onclick="joinRoom()">Join</button>
+            </div>
+            <div id="joinStatus" class="status">Waiting for a room code.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section booth" id="booth">
+      <div class="panel">
+        <div class="stepbar"><span class="stepchip on" id="step1">1 · Shoot</span><span class="stepchip" id="step2">2 · Select</span><span class="stepchip" id="step3">3 · Style</span><span class="stepchip" id="step4">4 · Save</span></div><h2>Your shared frame.</h2>
+        <p class="muted" id="roomLabel">Room —</p>
+        <div class="stage-wrap">
+          <div class="stage" id="stage">
+            <div class="video-grid">
+              <div class="video-cell">
+                <video id="localVideo" autoplay playsinline muted></video>
+                <div id="localEmpty" class="empty-person">Allow camera access<br>to enter the frame.</div>
+              </div>
+              <div class="video-cell">
+                <video id="remoteVideo" autoplay playsinline></video>
+                <div id="remoteEmpty" class="empty-person">Waiting for your person ♡</div>
+              </div>
+            </div>
+            <div class="stage-overlay"></div><div class="gridline" id="gridline"></div>
+            <div class="countdown" id="countdown">3</div>
+            <div class="flash" id="flash"></div>
+            <div class="pose" id="pose">make half a heart toward the middle ♡</div>
+          </div>
+          <div class="controls">
+            <div class="connection-badge"><span class="dot" id="connectionDot"></span><span id="connectionText">Not connected</span></div>
+            <button class="btn" onclick="enableCamera()">Enable / retry camera</button>
+            <div class="utility-grid" style="margin-top:10px"><button class="utility on" id="mirrorBtn" onclick="toggleMirror()">Mirror on</button><button class="utility" id="gridBtn" onclick="toggleGrid()">Grid off</button></div>
+            <label>Shot delay</label>
+            <select id="delaySelect"><option value="3">3 seconds</option><option value="5">5 seconds</option><option value="10">10 seconds</option></select>
+            <label>Session</label>
+            <button class="btn primary" onclick="startSession()">Take 6 photos</button>
+            <button class="btn secondary" onclick="captureOne()" style="margin-top:10px">Take one photo</button>
+            <button class="btn" onclick="resetShots()" style="margin-top:10px">Clear photos</button>
+            <div class="status" id="boothStatus">Enable your camera. In a shared room, wait until both people are connected.</div>
+          </div>
+        </div>
+
+        <div class="importer"><label class="btn secondary" for="photoImport">Add photos from library</label><input id="photoImport" type="file" accept="image/*" multiple><span class="muted" style="font-size:12px">Style existing photos too.</span></div><div id="shots" class="shots"></div>
+
+        <div id="editor" class="editor">
+          <div class="strip-card"><canvas id="stripCanvas" width="900" height="1500"></canvas></div>
+          <div class="editor-tools">
+            <h3 style="margin-top:0">Finish your frame</h3>
+            <p class="muted">Pick exactly four shots. Your last style is remembered on this device.</p>
+            <label>Layout</label>
+            <div class="template-grid">
+              <button class="template on" data-layout="classic" onclick="setLayout('classic',this)">▥<br>Classic 4-cut</button>
+              <button class="template" data-layout="double" onclick="setLayout('double',this)">▦<br>Double strip</button>
+              <button class="template" data-layout="polaroid" onclick="setLayout('polaroid',this)">▢<br>Polaroid</button>
+              <button class="template" data-layout="grid" onclick="setLayout('grid',this)">⊞<br>2×2 grid</button>
+              <button class="template" data-layout="film" onclick="setLayout('film',this)">▤<br>Film sprocket</button>
+              <button class="template" data-layout="story" onclick="setLayout('story',this)">▯<br>Story 9:16</button>
+              <button class="template" data-layout="wide" onclick="setLayout('wide',this)">▭<br>Wide collage</button>
+              <button class="template" data-layout="postcard" onclick="setLayout('postcard',this)">✉<br>Postcard</button>
+              <button class="template" data-layout="square" onclick="setLayout('square',this)">□<br>Square social</button>
+            </div>
+            <label>Frame color</label>
+            <div class="swatches">
+              <button class="swatch theme-pink" onclick="setFrame('#f4c7d2')" aria-label="pink"></button>
+              <button class="swatch theme-blue" onclick="setFrame('#c5ddfa')" aria-label="blue"></button>
+              <button class="swatch theme-cream" onclick="setFrame('#fff4db')" aria-label="cream"></button>
+              <button class="swatch" style="background:#fff" onclick="setFrame('#ffffff')" aria-label="white"></button>
+              <button class="swatch theme-black" onclick="setFrame('#1d1d1d')" aria-label="black"></button>
+              <input id="customColor" type="color" value="#f4c7d2" style="width:40px;padding:2px" onchange="setFrame(this.value)" />
+            </div>
+            <label>Filter</label>
+            <div class="filter-grid" id="filterGrid"></div>
+            <select id="filterSelect" style="display:none"><option value="none">Natural</option><option value="warm">Warm</option><option value="mono">B&W</option><option value="soft">Soft</option><option value="sepia">Sepia</option><option value="cool">Cool</option><option value="vintage">Vintage</option><option value="bright">Bright</option><option value="fade">Faded</option><option value="contrast">Punchy</option></select>
+            <label>Filter intensity</label><input class="range" id="filterIntensity" type="range" min="0" max="100" value="75" oninput="saveStyle();renderStrip()" />
+            <label>Spacing</label><input class="range" id="frameGap" type="range" min="8" max="42" value="20" oninput="saveStyle();renderStrip()" />
+            <label>Caption</label>
+            <input id="caption" value="our little moment ♡" oninput="saveStyle();renderStrip()" />
+            <div class="share-row" style="margin-top:18px"><button class="btn primary" onclick="downloadStrip()">Download PNG</button><button class="btn secondary" onclick="shareStrip()">Share</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">DuoBooth is an original prototype inspired by the idea of synchronized long-distance photobooths. It does not copy Angie branding or proprietary assets.</footer>
+  </main>
+  <div id="toast" class="toast"></div>
+
+<script>
+  const poses = [
+    'make half a heart toward the middle ♡',
+    'both point at each other → ←',
+    'serious passport face 😐',
+    'look away like you are in a music video',
+    'tiny finger heart 🤏♡',
+    'biggest smile you have',
+    'pretend the other person just made you laugh'
+  ];
+
+  let peer = null, dataConn = null, mediaCall = null;
+  let localStream = null, remoteStream = null;
+  let roomCode = null, isHost = false, soloMode = false;
+  let shots = [], selected = new Set(), frameColor = '#f4c7d2', layoutMode='classic', mirrorMode=true, deferredPrompt=null;
+
+  const $ = id => document.getElementById(id);
+  const delay = ms => new Promise(r => setTimeout(r, ms));
+
+  function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2600); }
+  function randomCode(){ return Math.random().toString(36).replace(/[^a-z]/g,'').slice(0,6).toUpperCase().padEnd(6,'X'); }
+  function scrollToStart(){ $('start').scrollIntoView({behavior:'smooth'}); }
+  function showBooth(){ $('booth').classList.add('active'); $('booth').scrollIntoView({behavior:'smooth'}); }
+  function updateConnection(ok, text){ $('connectionDot').classList.toggle('ok',ok); $('connectionText').textContent=text; }
+
+  async function enableCamera(){
+    try{
+      if(localStream) localStream.getTracks().forEach(t=>t.stop());
+      localStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:1280},height:{ideal:720}},audio:false});
+      $('localVideo').srcObject = localStream; $('localEmpty').classList.add('hidden');
+      $('boothStatus').textContent='Camera ready.';
+      if(dataConn?.open && !isHost) callHost();
+      toast('Camera ready');
+    }catch(e){
+      $('boothStatus').textContent='Camera permission failed: '+e.message;
+      toast('Camera permission is required.');
+    }
+  }
+
+  function setupPeerEvents(){
+    peer.on('error', err => { $('boothStatus').textContent='Connection error: '+err.type; toast('Connection error'); });
+    peer.on('connection', conn => {
+      if(!isHost) return;
+      dataConn = conn; setupDataConn();
+    });
+    peer.on('call', call => {
+      mediaCall = call;
+      const stream = localStream || new MediaStream();
+      call.answer(stream);
+      call.on('stream', onRemoteStream);
+    });
+  }
+
+  function setupDataConn(){
+    dataConn.on('open',()=>{ updateConnection(true,'Partner connected'); $('remoteEmpty').textContent='Connected — waiting for camera'; toast('Partner connected ♡'); });
+    dataConn.on('data',msg=>{
+      if(msg?.type==='countdown') runCountdownAt(msg.startAt, msg.delay, msg.poseIndex, false);
+      if(msg?.type==='sessionDone') toast('Six-shot session complete');
+      if(msg?.type==='hello') updateConnection(true,'Partner connected');
+    });
+    dataConn.on('close',()=>{ updateConnection(false,'Partner disconnected'); $('remoteEmpty').classList.remove('hidden'); $('remoteEmpty').textContent='Your person left the room'; });
+  }
+
+  async function createRoom(){
+    soloMode=false; isHost=true; roomCode=randomCode();
+    $('hostCode').style.display='block'; $('hostCode').innerHTML=`Room code: <b style="font-size:20px;letter-spacing:.12em">${roomCode}</b><br><span class="muted">Share this code with your partner.</span>`;
+    $('roomLabel').textContent='Room '+roomCode+' · you are hosting'; showBooth();
+    peer = new Peer('duobooth-'+roomCode.toLowerCase(), {debug:1}); setupPeerEvents();
+    peer.on('open', async()=>{ updateConnection(false,'Waiting for partner'); await enableCamera(); });
+  }
+
+  async function joinRoom(){
+    const code=$('joinCode').value.trim().toUpperCase(); if(code.length<4){toast('Enter the room code');return}
+    soloMode=false; isHost=false; roomCode=code; $('joinStatus').textContent='Connecting…'; $('roomLabel').textContent='Room '+roomCode+' · joined'; showBooth();
+    peer = new Peer(undefined,{debug:1}); setupPeerEvents();
+    peer.on('open', async()=>{
+      await enableCamera();
+      dataConn = peer.connect('duobooth-'+roomCode.toLowerCase(),{reliable:true}); setupDataConn();
+      dataConn.on('open',()=>{ $('joinStatus').textContent='Connected to room '+roomCode; dataConn.send({type:'hello'}); callHost(); });
+    });
+  }
+
+  function callHost(){
+    if(!peer || !localStream || isHost || !roomCode) return;
+    if(mediaCall) mediaCall.close();
+    mediaCall = peer.call('duobooth-'+roomCode.toLowerCase(), localStream);
+    mediaCall.on('stream', onRemoteStream);
+  }
+
+  function onRemoteStream(stream){ remoteStream=stream; $('remoteVideo').srcObject=stream; $('remoteEmpty').classList.add('hidden'); updateConnection(true,'Both cameras connected'); }
+
+  async function startSolo(){
+    soloMode=true; isHost=true; roomCode='SOLO'; $('roomLabel').textContent='Solo booth'; showBooth(); updateConnection(true,'Solo mode');
+    $('remoteEmpty').textContent='Solo mode — your photo will fill the strip'; await enableCamera();
+  }
+
+  async function startSession(){
+    if(!localStream){ toast('Enable your camera first'); return; }
+    if(!soloMode && !isHost){ toast('The host starts the shared session'); return; }
+    resetShots();
+    for(let i=0;i<6;i++){
+      const poseIndex=i%poses.length; const seconds=Number($('delaySelect').value)||3; const startAt=Date.now()+900;
+      if(dataConn?.open) dataConn.send({type:'countdown',startAt,delay:seconds,poseIndex});
+      await runCountdownAt(startAt,seconds,poseIndex,true);
+      await delay(650);
+    }
+    if(dataConn?.open) dataConn.send({type:'sessionDone'}); setStep(2);
+  }
+
+  async function captureOne(){
+    if(!localStream){toast('Enable your camera first');return}
+    if(!soloMode && !isHost){toast('The host controls synchronized shots');return}
+    const seconds=Number($('delaySelect').value)||3, startAt=Date.now()+700, poseIndex=shots.length%poses.length;
+    if(dataConn?.open) dataConn.send({type:'countdown',startAt,delay:seconds,poseIndex});
+    await runCountdownAt(startAt,seconds,poseIndex,true);
+  }
+
+  async function runCountdownAt(startAt, seconds, poseIndex, capture){
+    $('pose').textContent=poses[poseIndex%poses.length];
+    const wait=Math.max(0,startAt-Date.now()); await delay(wait);
+    for(let n=seconds;n>=1;n--){ $('countdown').textContent=n; $('countdown').classList.add('show'); await delay(1000); }
+    $('countdown').textContent='♡'; await delay(90); $('flash').class.remove?.('on'); void $('flash').offsetWidth; $('flash').classList.add('on');
+    if(capture) takeCompositeShot();
+    await delay(220); $('countdown').classList.remove('show');
+  }
+
+  function drawVideoCover(ctx, video, x,y,w,h){
+    if(!video.videoWidth){ ctx.fillStyle='#222';ctx.fillRect(x,y,w,h);return; }
+    const vw=video.videoWidth,vh=video.videoHeight, scale=Math.max(w/vw,h/vh), sw=w/scale, sh=h/scale, sx=(vw-sw)/2, sy=(vh-sh)/2;
+    ctx.save(); if(mirrorMode){ctx.translate(x+w,y);ctx.scale(-1,1);ctx.drawImage(video,sx,sy,sw,sh,0,0,w,h)}else{ctx.drawImage(video,sx,sy,sw,sh,x,y,w,h)} ctx.restore();
+  }
+
+  function takeCompositeShot(){
+    const c=document.createElement('canvas'); c.width=1200;c.height=800; const ctx=c.getContext('2d');
+    if(soloMode || !$('remoteVideo').srcObject){ drawVideoCover(ctx,$('localVideo'),0,0,c.width,c.height); }
+    else{ drawVideoCover(ctx,$('localVideo'),0,0,600,800); drawVideoCover(ctx,$('remoteVideo'),600,0,600,800); }
+    // seam
+    if(!soloMode && $('remoteVideo').srcObject){ctx.fillStyle='rgba(255,255,255,.55)';ctx.fillRect(598,0,4,800)}
+    const data=c.toDataURL('image/jpeg',.9); shots.push(data); renderShots();
+  }
+
+  function renderShots(){
+    const wrap=$('shots'); wrap.innerHTML='';
+    shots.forEach((src,i)=>{ const el=document.createElement('div'); el.className='shot'+(selected.has(i)?' selected':''); el.onclick=()=>toggleSelect(i); el.innerHTML=`<img src="${src}" alt="shot ${i+1}"><span class="num">${i+1}</span>`; wrap.appendChild(el); });
+    if(shots.length){ $('boothStatus').textContent=`${shots.length} photo${shots.length===1?'':'s'} captured. Select four for your strip.`; }
+    if(selected.size===4){ $('editor').classList.add('active'); setStep(3); renderStrip(); }
+  }
+
+  function toggleSelect(i){
+    if(selected.has(i)) selected.delete(i); else { if(selected.size>=4){toast('Choose exactly four — deselect one first');return;} selected.add(i); }
+    renderShots(); if(selected.size<4) $('editor').classList.remove('active');
+  }
+
+  function resetShots(){ shots=[];selected.clear();$('shots').innerHTML='';$('editor').classList.remove('active'); setStep(1); }
+  function setFrame(c){ frameColor=c; renderStrip(); }
+
+  function applyFilter(ctx,type,w,h){
+    if(type==='none') return;
+    const im=ctx.getImageData(0,0,w,h), d=im.data;
+    for(let i=0;i<d.length;i+=4){let r=d[i],g=d[i+1],b=d[i+2];
+      if(type==='mono'){const y=.299*r+.587*g+.114*b; r=g=b=y;}
+      if(type==='warm'){r=Math.min(255,r*1.08+8);g=Math.min(255,g*1.03+3);b*=.92;}
+      if(type==='soft'){r=Math.min(255,r*1.03+8);g=Math.min(255,g*1.03+8);b=Math.min(255,b*1.03+8);}
+      d[i]=r;d[i+1]=g;d[i+2]=b;
+    } ctx.putImageData(im,0,0);
+  }
+
+  async function renderStrip(){
+    if(selected.size!==4) return;
+    const canvas=$('stripCanvas'),ctx=canvas.getContext('2d'), picks=[...selected].sort((a,b)=>a-b);
+    ctx.fillStyle=frameColor;ctx.fillRect(0,0,canvas.width,canvas.height);
+    const pad=48,gap=20,captionH=120,imgW=canvas.width-pad*2,imgH=(canvas.height-pad*2-captionH-gap*3)/4;
+    for(let k=0;k<4;k++){
+      const img=new Image(); img.src=shots[picks[k]]; await img.decode();
+      const y=pad+k*(imgH+gap); ctx.save();ctx.beginPath();ctx.roundRect(pad,y,imgW,imgH,14);ctx.clip();
+      const ratio=Math.max(imgW/img.width,imgH/img.height),dw=img.width*ratio,dh=img.height*ratio;ctx.drawImage(img,pad+(imgW-dw)/2,y+(imgH-dh)/2,dw,dh);ctx.restore();
+      const tmp=ctx.getImageData(pad,y,imgW,imgH); const fc=document.createElement('canvas');fc.width=imgW;fc.height=imgH;const fctx=fc.getContext('2d');fctx.putImageData(tmp,0,0);applyFilter(fctx,$('filterSelect').value,imgW,imgH);ctx.drawImage(fc,pad,y);
+    }
+    const dark=frameColor==='#1d1d1d'; ctx.fillStyle=dark?'#fff':'#1b1a18';ctx.textAlign='center';ctx.font='600 34px DM Sans, sans-serif';ctx.fillText(($('caption').value||'our little moment ♡').slice(0,40),canvas.width/2,canvas.height-54);
+    ctx.font='500 20px DM Sans, sans-serif';ctx.globalAlpha=.7;ctx.fillText(new Date().toLocaleDateString(),canvas.width/2,canvas.height-22);ctx.globalAlpha=1;
+  }
+
+  function downloadStrip(){
+    renderStrip().then(()=>{ const a=document.createElement('a');a.download=`duobooth-${Date.now()}.png`;a.href=$('stripCanvas').toDataURL('image/png');a.click(); });
+  }
+
+
+  const filterNames=[['none','Natural'],['warm','Warm'],['mono','B&W'],['soft','Soft'],['sepia','Sepia'],['cool','Cool'],['vintage','Vintage'],['bright','Bright'],['fade','Faded'],['contrast','Punchy']];
+  function setStep(n){[1,2,3,4].forEach(i=>{const e=$('step'+i);if(e)e.classList.toggle('on',i===n)})}
+  function toggleMirror(){mirrorMode=!mirrorMode;$('mirrorBtn').textContent=mirrorMode?'Mirror on':'Mirror off';$('mirrorBtn').classList.toggle('on',mirrorMode);$('localVideo').style.transform=mirrorMode?'scaleX(-1)':'none'}
+  function toggleGrid(){$('gridline').classList.toggle('on');const on=$('gridline').classList.contains('on');$('gridBtn').textContent=on?'Grid on':'Grid off';$('gridBtn').classList.toggle('on',on)}
+  function setLayout(id,el){layoutMode=id;document.querySelectorAll('.template').forEach(x=>x.classList.remove('on'));el?.classList.add('on');saveStyle();renderStrip()}
+  function initFilters(){const box=$('filterGrid'); if(!box)return; filterNames.forEach(([id,name])=>{const b=document.createElement('button');b.className='filter-chip'+(id===$('filterSelect').value?' on':'');b.textContent=name;b.onclick=()=>{$('filterSelect').value=id;box.querySelectorAll('.filter-chip').forEach(x=>x.classList.remove('on'));b.classList.add('on');saveStyle();renderStrip()};box.appendChild(b)})}
+  function saveStyle(){try{localStorage.setItem('duobooth-style',JSON.stringify({layoutMode,frameColor,filter:$('filterSelect')?.value||'none',intensity:$('filterIntensity')?.value||75,gap:$('frameGap')?.value||20,caption:$('caption')?.value||''}))}catch{}}
+  function loadStyle(){try{const st=JSON.parse(localStorage.getItem('duobooth-style')||'{}');layoutMode=st.layoutMode||layoutMode;frameColor=st.frameColor||frameColor;if(st.filter)$('filterSelect').value=st.filter;if(st.intensity)$('filterIntensity').value=st.intensity;if(st.gap)$('frameGap').value=st.gap;if(st.caption)$('caption').value=st.caption;$('customColor').value=frameColor;document.querySelectorAll('.template').forEach(x=>x.classList.toggle('on',x.dataset.layout===layoutMode))}catch{}}
+  function setFrame(c){frameColor=c;if($('customColor'))$('customColor').value=c;saveStyle();renderStrip()}
+  function applyFilter(ctx,type,w,h){
+    if(type==='none')return;const im=ctx.getImageData(0,0,w,h),d=im.data,a=(Number($('filterIntensity')?.value)||75)/100;
+    for(let i=0;i<d.length;i+=4){const r0=d[i],g0=d[i+1],b0=d[i+2];let r=r0,g=g0,b=b0;
+      if(type==='mono'){const y=.299*r+.587*g+.114*b;r=g=b=y}
+      if(type==='warm'){r=Math.min(255,r*1.09+10);g*=1.02;b*=.89}
+      if(type==='soft'){r=Math.min(255,r*1.03+12);g=Math.min(255,g*1.03+12);b=Math.min(255,b*1.03+12)}
+      if(type==='sepia'){r=.393*r0+.769*g0+.189*b0;g=.349*r0+.686*g0+.168*b0;b=.272*r0+.534*g0+.131*b0}
+      if(type==='cool'){r*=.93;g*=1.02;b=Math.min(255,b*1.1+8)}
+      if(type==='vintage'){r=(Math.min(255,r*1.04+8)+210)/2;g=(g*.98+190)/2;b=(b*.84+155)/2}
+      if(type==='bright'){r=Math.min(255,r*1.08+14);g=Math.min(255,g*1.08+14);b=Math.min(255,b*1.08+14)}
+      if(type==='fade'){r=r*.82+44;g=g*.82+42;b=b*.82+40}
+      if(type==='contrast'){r=(r-128)*1.24+128;g=(g-128)*1.24+128;b=(b-128)*1.24+128}
+      d[i]=r0+(Math.max(0,Math.min(255,r))-r0)*a;d[i+1]=g0+(Math.max(0,Math.min(255,g))-g0)*a;d[i+2]=b0+(Math.max(0,Math.min(255,b))-b0)*a;
+    }ctx.putImageData(im,0,0)
+  }
+  async function renderStrip(){
+    if(selected.size!==4)return;const canvas=$('stripCanvas'),ctx=canvas.getContext('2d'),picks=[...selected].sort((a,b)=>a-b),imgs=[];
+    for(const p of picks){const im=new Image();im.src=shots[p];await im.decode();imgs.push(im)}
+    let W=900,H=1500;if(['grid','square'].includes(layoutMode)){W=1200;H=1200}if(layoutMode==='wide'){W=1600;H=900}if(layoutMode==='story'){W=1080;H=1920}if(layoutMode==='postcard'){W=1600;H=1050}if(layoutMode==='double'){W=1500;H=1500}if(layoutMode==='polaroid'){W=1100;H=1400}if(layoutMode==='film'){W=1000;H=1600}canvas.width=W;canvas.height=H;ctx.fillStyle=frameColor;ctx.fillRect(0,0,W,H);const gap=Number($('frameGap')?.value)||20;
+    async function draw(im,x,y,w,h,r=12){const tmp=document.createElement('canvas');tmp.width=Math.round(w);tmp.height=Math.round(h);const tx=tmp.getContext('2d'),ratio=Math.max(w/im.width,h/im.height),dw=im.width*ratio,dh=im.height*ratio;tx.drawImage(im,(w-dw)/2,(h-dh)/2,dw,dh);applyFilter(tx,$('filterSelect').value,tmp.width,tmp.height);ctx.save();ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.clip();ctx.drawImage(tmp,x,y,w,h);ctx.restore()}
+    if(layoutMode==='classic'){const pad=48,cap=120,h=(H-pad*2-cap-gap*3)/4;for(let i=0;i<4;i++)await draw(imgs[i],pad,pad+i*(h+gap),W-pad*2,h)}
+    if(layoutMode==='double'){const sw=(W-gap*3)/2,ph=(H-150-gap*5)/4;for(let col=0;col<2;col++)for(let i=0;i<4;i++)await draw(imgs[i],gap+(sw+gap)*col,gap+i*(ph+gap),sw,ph,8)}
+    if(['grid','square'].includes(layoutMode)){const pad=45,sz=(W-pad*2-gap)/2;for(let i=0;i<4;i++)await draw(imgs[i],pad+(i%2)*(sz+gap),pad+Math.floor(i/2)*(sz+gap),sz,sz,14)}
+    if(layoutMode==='polaroid'){ctx.fillStyle='#fff';ctx.fillRect(75,55,W-150,H-150);const pad=115,ph=205;for(let i=0;i<4;i++)await draw(imgs[i],pad,pad+i*(ph+gap),W-pad*2,ph,4)}
+    if(layoutMode==='film'){ctx.fillStyle='#171717';ctx.fillRect(0,0,W,H);for(let y=22;y<H-22;y+=45){ctx.fillStyle='#f7efe2';ctx.fillRect(18,y,22,25);ctx.fillRect(W-40,y,22,25)}const pad=62,ph=(H-124-gap*3-90)/4;for(let i=0;i<4;i++)await draw(imgs[i],pad,62+i*(ph+gap),W-pad*2,ph,2)}
+    if(layoutMode==='story'){const pad=60,ph=(H-250-gap*3)/4;for(let i=0;i<4;i++)await draw(imgs[i],pad,80+i*(ph+gap),W-pad*2,ph,18)}
+    if(layoutMode==='wide'){const pad=38,pw=(W-pad*2-gap)/2,ph=(H-pad*2-gap-95)/2;for(let i=0;i<4;i++)await draw(imgs[i],pad+(i%2)*(pw+gap),pad+Math.floor(i/2)*(ph+gap),pw,ph,16)}
+    if(layoutMode==='postcard'){const pad=45,pw=980,ph=H-pad*2;await draw(imgs[0],pad,pad,pw,ph,18);for(let i=1;i<4;i++)await draw(imgs[i],pw+pad+gap,pad+(i-1)*((ph-gap*2)/3+gap),W-pw-pad*2-gap,(ph-gap*2)/3,10)}
+    const dark=frameColor.toLowerCase()==='#1d1d1d'||layoutMode==='film';ctx.fillStyle=dark?'#fff':'#1b1a18';ctx.textAlign='center';ctx.font='600 '+Math.max(28,Math.round(W*.027))+'px DM Sans, sans-serif';ctx.fillText(($('caption').value||'our little moment ♡').slice(0,40),W/2,H-45);ctx.font='500 '+Math.max(17,Math.round(W*.014))+'px DM Sans, sans-serif';ctx.globalAlpha=.7;ctx.fillText(new Date().toLocaleDateString(),W/2,H-18);ctx.globalAlpha=1;saveStyle()
+  }
+  async function getBlob(){await renderStrip();return await new Promise(r=>$('stripCanvas').toBlob(r,'image/png',1))}
+  async function downloadStrip(){const b=await getBlob(),a=document.createElement('a');a.download='duobooth-'+Date.now()+'.png';a.href=URL.createObjectURL(b);a.click();URL.revokeObjectURL(a.href);setStep(4)}
+  async function shareStrip(){const b=await getBlob(),f=new File([b],'duobooth.png',{type:'image/png'});if(navigator.canShare?.({files:[f]})){await navigator.share({files:[f],title:'DuoBooth'});setStep(4)}else downloadStrip()}
+  $('photoImport').addEventListener('change',async e=>{for(const f of [...e.target.files].slice(0,12-shots.length)){const u=URL.createObjectURL(f),im=new Image();im.src=u;await im.decode();const c=document.createElement('canvas');c.width=1200;c.height=800;const x=c.getContext('2d'),r=Math.max(c.width/im.width,c.height/im.height),dw=im.width*r,dh=im.height*r;x.drawImage(im,(c.width-dw)/2,(c.height-dh)/2,dw,dh);shots.push(c.toDataURL('image/jpeg',.92));URL.revokeObjectURL(u)}renderShots();setStep(2)});
+  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('installBtn').style.display='inline-block'});$('installBtn').onclick=async()=>{if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('installBtn').style.display='none'}};
+  if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+  loadStyle();initFilters();
+
+  $('joinCode').addEventListener('input',e=>e.target.value=e.target.value.toUpperCase().replace(/[^A-Z]/g,''));
+</script>
+</body>
+</html>
