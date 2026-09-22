@@ -375,10 +375,10 @@
           <div class="editor-tools">
             <label>Layout</label>
             <div class="template-grid">
-              <button class="template on" data-layout="classic" onclick="setLayout('classic',this)">▥<br>Classic strip</button>
+              <button class="template on" data-layout="classic" onclick="setLayout('classic',this)">▥<br>Classic 4-cut</button>
               <button class="template" data-layout="double" onclick="setLayout('double',this)">▦<br>Double strip</button>
               <button class="template" data-layout="polaroid" onclick="setLayout('polaroid',this)">▢<br>Polaroid</button>
-              <button class="template" data-layout="grid" onclick="setLayout('grid',this)">⊞<br>2×2 grid</button>
+              <button class="template" data-layout="grid" onclick="setLayout('grid',this)">⊞<br>Life4Cuts 2×2</button>
               <button class="template" data-layout="film" onclick="setLayout('film',this)">▤<br>Film strip</button>
               <button class="template" data-layout="story" onclick="setLayout('story',this)">▯<br>Story</button>
               <button class="template" data-layout="wide" onclick="setLayout('wide',this)">▭<br>Wide collage</button>
@@ -746,26 +746,6 @@
     } ctx.putImageData(im,0,0);
   }
 
-  async function renderStrip(){
-    if(selected.size!==4) return;
-    const canvas=$('stripCanvas'),ctx=canvas.getContext('2d'), picks=[...selected].sort((a,b)=>a-b);
-    ctx.fillStyle=frameColor;ctx.fillRect(0,0,canvas.width,canvas.height);
-    const pad=48,gap=20,captionH=120,imgW=canvas.width-pad*2,imgH=(canvas.height-pad*2-captionH-gap*3)/4;
-    for(let k=0;k<4;k++){
-      const img=new Image(); img.src=shots[picks[k]]; await img.decode();
-      const y=pad+k*(imgH+gap); ctx.save();ctx.beginPath();ctx.roundRect(pad,y,imgW,imgH,14);ctx.clip();
-      const ratio=Math.max(imgW/img.width,imgH/img.height),dw=img.width*ratio,dh=img.height*ratio;ctx.drawImage(img,pad+(imgW-dw)/2,y+(imgH-dh)/2,dw,dh);ctx.restore();
-      const tmp=ctx.getImageData(pad,y,imgW,imgH); const fc=document.createElement('canvas');fc.width=imgW;fc.height=imgH;const fctx=fc.getContext('2d');fctx.putImageData(tmp,0,0);applyFilter(fctx,$('filterSelect').value,imgW,imgH);ctx.drawImage(fc,pad,y);
-    }
-    const dark=frameColor==='#1d1d1d'; ctx.fillStyle=dark?'#fff':'#1b1a18';ctx.textAlign='center';ctx.font='600 34px DM Sans, sans-serif';ctx.fillText(($('caption').value||'our little moment ♡').slice(0,40),canvas.width/2,canvas.height-54);
-    ctx.font='500 20px DM Sans, sans-serif';ctx.globalAlpha=.7;ctx.fillText(new Date().toLocaleDateString(),canvas.width/2,canvas.height-22);ctx.globalAlpha=1;
-  }
-
-  function downloadStrip(){
-    renderStrip().then(()=>{ const a=document.createElement('a');a.download=`pias-booth-${Date.now()}.png`;a.href=$('stripCanvas').toDataURL('image/png');a.click(); });
-  }
-
-
   const filterNames=[['none','Natural'],['warm','Warm'],['mono','B&W'],['soft','Soft'],['sepia','Sepia'],['cool','Cool'],['vintage','Vintage'],['bright','Bright'],['fade','Faded'],['contrast','Punchy']];
   function setStep(n){[1,2,3,4,5,6,7].forEach(i=>{const e=$('step'+i);if(e)e.classList.toggle('on',i===n)})}
   async function goPhase(n){
@@ -942,27 +922,109 @@
     const count=selected.size;if(count<1)return;
     const canvas=$('stripCanvas'),ctx=canvas.getContext('2d'),picks=[...selected].sort((a,b)=>a-b),imgs=[];frameRects=[];
     for(const p of picks){const im=new Image();im.src=shots[p];await im.decode();imgs.push(im)}
-    let W=900,H=1500;if(['grid','square'].includes(layoutMode)){W=1200;H=1200}if(layoutMode==='wide'){W=1600;H=900}if(layoutMode==='story'){W=1080;H=1920}if(layoutMode==='postcard'){W=1600;H=1050}if(layoutMode==='double'){W=1500;H=1500}if(layoutMode==='polaroid'){W=count===1?1100:1200;H=count===1?1350:1450}if(layoutMode==='film'){W=1000;H=1600}
-    canvas.width=W;canvas.height=H;ctx.fillStyle=frameColor;ctx.fillRect(0,0,W,H);const gap=Number($('frameGap')?.value)||20;
+    const gap=Number($('frameGap')?.value)||20;
+    const ratio=4/3;
+    let W=900,H=1500;
+
+    function sizeForStack(width,pad,bottom=120){
+      const photoW=width-pad*2,photoH=photoW/ratio;
+      return Math.round(pad*2+photoH*count+gap*Math.max(0,count-1)+bottom)
+    }
+
+    if(layoutMode==='classic'){W=900;H=sizeForStack(W,48,120)}
+    if(layoutMode==='double'){
+      W=1500;const pad=38,photoW=(W-pad*3)/2,photoH=photoW/ratio;
+      H=Math.round(pad*2+photoH*count+gap*Math.max(0,count-1)+110)
+    }
+    if(layoutMode==='polaroid'){W=count===1?1100:1200;H=sizeForStack(W,105,200)}
+    if(layoutMode==='film'){W=1000;H=sizeForStack(W,62,110)}
+    if(layoutMode==='grid'||layoutMode==='square'){
+      W=1200;const pad=45,cols=count===1?1:2,photoW=cols===1?W-pad*2:(W-pad*2-gap)/2,photoH=photoW/ratio,rows=Math.ceil(count/cols);
+      H=Math.round(pad*2+photoH*rows+gap*Math.max(0,rows-1)+115)
+    }
+    if(layoutMode==='wide'){
+      W=1600;const pad=45,cols=count===1?1:2,photoW=cols===1?W-pad*2:(W-pad*2-gap)/2,photoH=photoW/ratio,rows=Math.ceil(count/cols);
+      H=Math.round(pad*2+photoH*rows+gap*Math.max(0,rows-1)+110)
+    }
+    if(layoutMode==='postcard'){
+      W=1600;const pad=45,mainW=Math.round((W-pad*3)*.61),mainH=mainW/ratio;
+      if(count===1)H=Math.round(pad*2+mainH+115);
+      else{
+        const sideW=W-pad*3-mainW,sideH=sideW/ratio;
+        H=Math.round(pad*2+Math.max(mainH,sideH*(count-1)+gap*Math.max(0,count-2))+115)
+      }
+    }
+    if(layoutMode==='story'){W=1080;H=1920}
+
+    canvas.width=W;canvas.height=H;
+    ctx.fillStyle=frameColor;ctx.fillRect(0,0,W,H);
+
     async function draw(im,shotIndex,x,y,w,h,r=12){
       frameRects.push({shotIndex,x,y,w,h});
-      const tmp=document.createElement('canvas');tmp.width=Math.max(1,Math.round(w));tmp.height=Math.max(1,Math.round(h));const tx=tmp.getContext('2d'),crop=ensureCrop(shotIndex);
-      const base=crop.fit==='cover'?Math.max(w/im.width,h/im.height):Math.min(w/im.width,h/im.height),scale=base*crop.zoom,dw=im.width*scale,dh=im.height*scale;
-      const dx=(w-dw)/2 + crop.panX*w,dy=(h-dh)/2 + crop.panY*h;
-      tx.drawImage(im,dx,dy,dw,dh);applyFilter(tx,$('filterSelect').value,tmp.width,tmp.height);
-      ctx.save();ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.clip();ctx.drawImage(tmp,x,y,w,h);
-      if(activePhotoIndex===shotIndex){ctx.strokeStyle='rgba(255,255,255,.96)';ctx.lineWidth=Math.max(4,W*.004);ctx.strokeRect(x+3,y+3,w-6,h-6)}
-      ctx.restore()
+      const tmp=document.createElement('canvas');
+      tmp.width=Math.max(1,Math.round(w));tmp.height=Math.max(1,Math.round(h));
+      const tx=tmp.getContext('2d'),crop=ensureCrop(shotIndex);
+
+      // Camera captures are 4:3. Frame windows are also 4:3, so default zoom=1
+      // projects the shot without stretching or unnecessary cropping.
+      const cover=Math.max(w/im.width,h/im.height);
+      const scale=cover*crop.zoom;
+      const dw=im.width*scale,dh=im.height*scale;
+      const dx=(w-dw)/2+crop.panX*w,dy=(h-dh)/2+crop.panY*h;
+      tx.drawImage(im,dx,dy,dw,dh);
+      applyFilter(tx,$('filterSelect').value,tmp.width,tmp.height);
+
+      ctx.save();ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.clip();ctx.drawImage(tmp,x,y,w,h);ctx.restore()
     }
-    async function autoGrid(pad=45,bottom=120){if(count===1){await draw(imgs[0],picks[0],pad,pad,W-pad*2,H-pad-bottom,16);return}if(count===2){const h=(H-pad*2-bottom-gap)/2;for(let i=0;i<2;i++)await draw(imgs[i],picks[i],pad,pad+i*(h+gap),W-pad*2,h,16);return}const pw=(W-pad*2-gap)/2,ph=(H-pad*2-bottom-gap)/2;for(let i=0;i<count;i++)await draw(imgs[i],picks[i],pad+(i%2)*(pw+gap),pad+Math.floor(i/2)*(ph+gap),pw,ph,14)}
-    if(layoutMode==='classic'){const pad=48,cap=120,h=(H-pad*2-cap-gap*(count-1))/count;for(let i=0;i<count;i++)await draw(imgs[i],picks[i],pad,pad+i*(h+gap),W-pad*2,h,14)}
-    if(layoutMode==='double'){if(count===1){const sw=(W-gap*3)/2;for(let col=0;col<2;col++)await draw(imgs[0],picks[0],gap+(sw+gap)*col,gap,sw,H-150-gap,10)}else{const sw=(W-gap*3)/2,ph=(H-150-gap*(count+1))/count;for(let col=0;col<2;col++)for(let i=0;i<count;i++)await draw(imgs[i],picks[i],gap+(sw+gap)*col,gap+i*(ph+gap),sw,ph,8)}}
-    if(['grid','square'].includes(layoutMode))await autoGrid(45,115);
-    if(layoutMode==='polaroid'){ctx.fillStyle='#fff';ctx.fillRect(70,50,W-140,H-135);if(count===1){await draw(imgs[0],picks[0],105,90,W-210,H-310,4)}else{const pad=110,available=H-260,ph=(available-gap*(count-1))/count;for(let i=0;i<count;i++)await draw(imgs[i],picks[i],pad,85+i*(ph+gap),W-pad*2,ph,4)}}
-    if(layoutMode==='film'){ctx.fillStyle='#171717';ctx.fillRect(0,0,W,H);for(let y=22;y<H-22;y+=45){ctx.fillStyle='#f7efe2';ctx.fillRect(18,y,22,25);ctx.fillRect(W-40,y,22,25)}const pad=62,ph=(H-124-gap*(count-1)-90)/count;for(let i=0;i<count;i++)await draw(imgs[i],picks[i],pad,62+i*(ph+gap),W-pad*2,ph,2)}
-    if(layoutMode==='story'){const pad=60,ph=(H-250-gap*(count-1))/count;for(let i=0;i<count;i++)await draw(imgs[i],picks[i],pad,80+i*(ph+gap),W-pad*2,ph,18)}
-    if(layoutMode==='wide'){if(count===1)await draw(imgs[0],picks[0],38,38,W-76,H-170,18);else{const rows=Math.ceil(count/2),pw=(W-76-gap)/2,ph=(H-76-95-gap*(rows-1))/rows;for(let i=0;i<count;i++)await draw(imgs[i],picks[i],38+(i%2)*(pw+gap),38+Math.floor(i/2)*(ph+gap),pw,ph,16)}}
-    if(layoutMode==='postcard'){const pad=45;if(count===1)await draw(imgs[0],picks[0],pad,pad,W-pad*2,H-pad*2-105,18);else{const pw=Math.round(W*.61),ph=H-pad*2;await draw(imgs[0],picks[0],pad,pad,pw,ph,18);const side=count-1,sh=(ph-gap*(side-1))/side;for(let i=1;i<count;i++)await draw(imgs[i],picks[i],pw+pad+gap,pad+(i-1)*(sh+gap),W-pw-pad*2-gap,sh,10)}}
+
+    if(layoutMode==='classic'){
+      const pad=48,w=W-pad*2,h=w/ratio;
+      for(let i=0;i<count;i++)await draw(imgs[i],picks[i],pad,pad+i*(h+gap),w,h,14)
+    }
+
+    if(layoutMode==='double'){
+      const pad=38,w=(W-pad*3)/2,h=w/ratio;
+      for(let col=0;col<2;col++)for(let i=0;i<count;i++)await draw(imgs[i],picks[i],pad+col*(w+pad),pad+i*(h+gap),w,h,10)
+    }
+
+    if(layoutMode==='polaroid'){
+      ctx.fillStyle='#fff';ctx.fillRect(65,45,W-130,H-110);
+      const pad=105,w=W-pad*2,h=w/ratio;
+      for(let i=0;i<count;i++)await draw(imgs[i],picks[i],pad,85+i*(h+gap),w,h,4)
+    }
+
+    if(layoutMode==='film'){
+      ctx.fillStyle='#171717';ctx.fillRect(0,0,W,H);
+      for(let y=22;y<H-22;y+=45){ctx.fillStyle='#f7efe2';ctx.fillRect(18,y,22,25);ctx.fillRect(W-40,y,22,25)}
+      const pad=62,w=W-pad*2,h=w/ratio;
+      for(let i=0;i<count;i++)await draw(imgs[i],picks[i],pad,pad+i*(h+gap),w,h,2)
+    }
+
+    if(layoutMode==='grid'||layoutMode==='square'){
+      const pad=45,cols=count===1?1:2,w=cols===1?W-pad*2:(W-pad*2-gap)/2,h=w/ratio;
+      for(let i=0;i<count;i++)await draw(imgs[i],picks[i],pad+(i%cols)*(w+gap),pad+Math.floor(i/cols)*(h+gap),w,h,14)
+    }
+
+    if(layoutMode==='wide'){
+      const pad=45,cols=count===1?1:2,w=cols===1?W-pad*2:(W-pad*2-gap)/2,h=w/ratio;
+      for(let i=0;i<count;i++)await draw(imgs[i],picks[i],pad+(i%cols)*(w+gap),pad+Math.floor(i/cols)*(h+gap),w,h,16)
+    }
+
+    if(layoutMode==='postcard'){
+      const pad=45,mainW=Math.round((W-pad*3)*.61),mainH=mainW/ratio;
+      await draw(imgs[0],picks[0],pad,pad,mainW,mainH,18);
+      if(count>1){
+        const sideW=W-pad*3-mainW,sideH=sideW/ratio;
+        for(let i=1;i<count;i++)await draw(imgs[i],picks[i],pad*2+mainW,pad+(i-1)*(sideH+gap),sideW,sideH,10)
+      }
+    }
+
+    if(layoutMode==='story'){
+      const pad=70,cols=count===1?1:2,w=cols===1?W-pad*2:(W-pad*2-gap)/2,h=w/ratio,rows=Math.ceil(count/cols);
+      const blockH=rows*h+gap*Math.max(0,rows-1);
+      const y0=Math.max(95,(H-blockH)/2-30);
+      for(let i=0;i<count;i++)await draw(imgs[i],picks[i],pad+(i%cols)*(w+gap),y0+Math.floor(i/cols)*(h+gap),w,h,18)
+    }
     function heart(x,y,sz,fill,stroke){
       ctx.save();ctx.translate(x,y);ctx.beginPath();ctx.moveTo(0,sz*.28);ctx.bezierCurveTo(-sz*.65,-sz*.25,-sz*.62,-sz*.8,0,-sz*.45);ctx.bezierCurveTo(sz*.62,-sz*.8,sz*.65,-sz*.25,0,sz*.28);ctx.closePath();if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=Math.max(2,W*.002);ctx.stroke()}ctx.restore()
     }
