@@ -796,6 +796,12 @@
     if($('captureProgressText'))$('captureProgressText').textContent=done>=sessionCount?'All '+sessionCount+' photos captured':'Shot '+(done+1)+' of '+sessionCount;
     if($('captureProgressFill'))$('captureProgressFill').style.width=((done/sessionCount)*100)+'%';
   }
+  function updateCaptureUI(){
+    const count=shots.length;
+    if($('captureCount'))$('captureCount').textContent=count+' photo'+(count===1?'':'s')+' captured';
+    if($('toSelectBtn'))$('toSelectBtn').disabled=count===0;
+    if($('toFrameBtn'))$('toFrameBtn').disabled=selected.size===0;
+  }
   function cancelAutoSession(){sessionCancelled=true;sessionRunning=false;toast('Session cancelled');goPhase(1)}
   async function beginAutoSession(){
     if(sessionRunning){toast('Session is already starting.');return}
