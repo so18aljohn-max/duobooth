@@ -1,4 +1,4 @@
-const CACHE='duobooth-v6';
+const CACHE='pias-booth-v7';
 const ASSETS=['./manifest.webmanifest','./icon.svg'];
 
 self.addEventListener('install',event=>{
@@ -9,7 +9,7 @@ self.addEventListener('install',event=>{
 self.addEventListener('activate',event=>{
   event.waitUntil((async()=>{
     const keys=await caches.keys();
-    await Promise.all(keys.filter(k=>k.startsWith('duobooth-')&&k!==CACHE).map(k=>caches.delete(k)));
+    await Promise.all(keys.filter(k=>(k.startsWith('duobooth-')||k.startsWith('pias-booth-'))&&k!==CACHE).map(k=>caches.delete(k)));
     await self.clients.claim();
   })());
 });
