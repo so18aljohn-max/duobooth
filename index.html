@@ -181,7 +181,19 @@
       .stage{aspect-ratio:9/14}.shutter{bottom:48px}.strip-card{max-height:44dvh}.strip-card #stripCanvas{max-height:calc(44dvh - 18px)}
     }
   
-    .stepbar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px}.stepchip{border:2px solid var(--line);border-radius:999px;background:#fff;padding:7px 11px;font-size:12px;font-weight:800}.stepchip.on{background:var(--yellow)}
+    .stepbar{display:flex;justify-content:center;gap:7px;flex-wrap:wrap;margin:0 0 22px}.stepchip{border:2px solid var(--line);border-radius:999px;background:#fff;padding:7px 11px;font-size:12px;font-weight:800;transition:.2s ease}.stepchip.on{background:var(--yellow);transform:translateY(-1px);box-shadow:2px 2px 0 var(--line)}
+    .phase-section{animation:phaseIn .28s ease both}.phase-hidden{display:none!important}
+    @keyframes phaseIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+    .phase-title{text-align:center;margin:0 0 6px;font-family:"Playfair Display",serif;font-size:clamp(30px,5vw,46px);letter-spacing:-.035em}
+    .phase-sub{text-align:center;max-width:620px;margin:0 auto 20px;opacity:.66;line-height:1.5}
+    .phase-nav{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:20px}
+    .phase-nav .btn{min-width:145px}
+    .capture-count{display:inline-flex;align-items:center;justify-content:center;margin:14px auto 0;border:2px solid var(--line);border-radius:999px;background:#fff4f7;padding:7px 11px;font-size:12px;font-weight:800}
+    .select-wrap{max-width:900px;margin:0 auto}
+    .save-phase{max-width:520px;margin:0 auto;text-align:center}
+    .save-card{border:2px solid var(--line);border-radius:22px;background:#fff;padding:14px;box-shadow:var(--shadow)}
+    #finalCanvas{display:block;width:100%;height:auto;max-height:66dvh;object-fit:contain;border-radius:12px}
+    @media(max-width:600px){.stepbar{position:sticky;top:0;z-index:90;background:rgba(255,248,238,.92);backdrop-filter:blur(10px);padding:8px 4px;margin:0 -4px 16px}.stepchip{font-size:10px;padding:6px 8px}.phase-nav{display:grid;grid-template-columns:1fr 1fr;position:sticky;bottom:8px;z-index:80;background:rgba(255,248,238,.92);backdrop-filter:blur(10px);padding:8px;border-radius:16px}.phase-nav .btn{min-width:0;width:100%;box-shadow:3px 3px 0 var(--line)}}
     .template-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}.template{border:2px solid var(--line);border-radius:12px;background:#fff;padding:9px 7px;font-weight:800;font-size:12px;min-height:62px}.template.on{background:var(--yellow)}
     .filter-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.filter-chip{border:2px solid var(--line);border-radius:11px;background:#fff;padding:8px 5px;font-weight:800;font-size:11px}.filter-chip.on{background:var(--blue)}
     .utility-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.utility{border:2px solid var(--line);border-radius:11px;background:#fff;padding:9px;font-weight:800}.utility.on{background:var(--yellow)}
@@ -235,6 +247,13 @@
             <div id="joinStatus" class="status">Waiting for a room code.</div>
           </div>
         </div>
+
+        <div id="savePhase" class="save-phase phase-section phase-hidden">
+          <h3 class="phase-title">Keep this one ♡</h3>
+          <p class="phase-sub">Your finished frame is ready in high resolution.</p>
+          <div class="save-card"><canvas id="finalCanvas" width="900" height="1500"></canvas></div>
+          <div class="phase-nav"><button class="btn" onclick="goPhase(3)">← Keep editing</button><button class="btn primary" onclick="downloadStrip()">Download PNG</button><button class="btn secondary" onclick="shareStrip()">Share</button></div>
+        </div>
       </div>
     </section>
 
@@ -242,7 +261,7 @@
       <div class="panel">
         <div class="stepbar"><span class="stepchip on" id="step1">1 · Shoot</span><span class="stepchip" id="step2">2 · Select</span><span class="stepchip" id="step3">3 · Style</span><span class="stepchip" id="step4">4 · Save</span></div><h2>Your shared frame.</h2>
         <p class="muted" id="roomLabel">Room —</p>
-        <div class="stage-wrap">
+        <div id="shootPhase" class="stage-wrap phase-section">
           <div class="stage" id="stage">
             <div class="video-grid">
               <div class="video-cell">
@@ -273,10 +292,20 @@
             <div class="status" id="boothStatus">Tap Start photobooth above, or restart the camera here if needed.</div>
           </div>
         </div>
+        <div id="shootActions" class="phase-section">
+          <div style="text-align:center"><span class="capture-count" id="captureCount">0 photos captured</span></div>
+          <div class="phase-nav"><button class="btn primary" id="toSelectBtn" onclick="goPhase(2)" disabled>Choose photos →</button></div>
+        </div>
 
-        <div class="importer"><label class="btn secondary" for="photoImport">Add photos from library</label><input id="photoImport" type="file" accept="image/*" multiple><span class="muted" style="font-size:12px">Style existing photos too.</span></div><div id="shots" class="shots"></div>
+        <div id="selectPhase" class="select-wrap phase-section phase-hidden">
+          <h3 class="phase-title">Pick your favorites.</h3>
+          <p class="phase-sub">Choose up to four photos. Tap a selected photo again to make it the active one for editing.</p>
+          <div class="importer"><label class="btn secondary" for="photoImport">Add photos from library</label><input id="photoImport" type="file" accept="image/*" multiple><span class="muted" style="font-size:12px">You can mix camera shots and library photos.</span></div>
+          <div id="shots" class="shots"></div>
+          <div class="phase-nav"><button class="btn" onclick="goPhase(1)">← Back to camera</button><button class="btn primary" id="toStyleBtn" onclick="goPhase(3)">Style photos →</button></div>
+        </div>
 
-        <div id="editor" class="editor">
+        <div id="editor" class="editor phase-section phase-hidden">
           <div class="strip-card"><div class="sticky-label" style="font-size:11px;font-weight:800;margin:0 0 7px;text-align:center;opacity:.65">LIVE EDIT PREVIEW · drag photo to reposition</div><canvas id="stripCanvas" width="900" height="1500"></canvas></div>
           <div class="editor-tools">
             <h3 style="margin-top:0">Finish your frame</h3>
@@ -329,7 +358,7 @@
             <label>Spacing</label><input class="range" id="frameGap" type="range" min="8" max="42" value="20" oninput="saveStyle();renderStrip()" />
             <label>Caption</label>
             <input id="caption" value="our little moment ♡" oninput="saveStyle();renderStrip()" />
-            <div class="share-row" style="margin-top:18px"><button class="btn primary" onclick="downloadStrip()">Download PNG</button><button class="btn secondary" onclick="shareStrip()">Share</button></div>
+            <div class="phase-nav"><button class="btn" onclick="goPhase(2)">← Change photos</button><button class="btn primary" onclick="goPhase(4)">Preview & save →</button></div>
           </div>
         </div>
       </div>
@@ -361,7 +390,7 @@
   let peer = null, dataConn = null, mediaCall = null;
   let localStream = null, remoteStream = null;
   let roomCode = null, isHost = false, soloMode = false;
-  let shots = [], selected = new Set(), frameColor = '#f4c7d2', layoutMode='classic', characterFrame='none', mirrorMode=true, cameraFacing='user', deferredPrompt=null, cropState={}, activePhotoIndex=null, frameRects=[], dragState=null;
+  let shots = [], selected = new Set(), frameColor = '#f4c7d2', layoutMode='classic', characterFrame='none', mirrorMode=true, cameraFacing='user', currentPhase=1, deferredPrompt=null, cropState={}, activePhotoIndex=null, frameRects=[], dragState=null;
 
   const $ = id => document.getElementById(id);
   const delay = ms => new Promise(r => setTimeout(r, ms));
@@ -374,29 +403,44 @@
     sec.style.display=show?'block':'none';
     if(show) sec.scrollIntoView({behavior:'smooth'});
   }
-  function showBooth(){ $('booth').classList.add('active'); $('booth').scrollIntoView({behavior:'smooth'}); }
+  function showBooth(){ $('booth').classList.add('active'); goPhase(1); $('booth').scrollIntoView({behavior:'smooth'}); }
   function updateConnection(ok, text){ $('connectionDot').classList.toggle('ok',ok); $('connectionText').textContent=text; }
 
   async function enableCamera(){
     try{
-      if(localStream) localStream.getTracks().forEach(t=>t.stop());
-      const constraints={video:{facingMode:{ideal:cameraFacing},width:{ideal:1920},height:{ideal:1080}},audio:false};
-      localStream=await navigator.mediaDevices.getUserMedia(constraints);
-      $('localVideo').srcObject=localStream;$('localEmpty').classList.add('hidden');
+      if(!navigator.mediaDevices?.getUserMedia)throw new Error('Camera access is not supported in this browser');
+      if(localStream)localStream.getTracks().forEach(t=>t.stop());
+      const attempts=[
+        {video:{facingMode:{ideal:cameraFacing},width:{ideal:1920},height:{ideal:1080},aspectRatio:{ideal:16/9}},audio:false},
+        {video:{facingMode:{ideal:cameraFacing},width:{ideal:1280},height:{ideal:720}},audio:false},
+        {video:{facingMode:cameraFacing},audio:false},
+        {video:true,audio:false}
+      ];
+      let lastErr=null;
+      for(const constraints of attempts){
+        try{localStream=await navigator.mediaDevices.getUserMedia(constraints);break}catch(e){lastErr=e}
+      }
+      if(!localStream)throw lastErr||new Error('Unable to open camera');
+      const video=$('localVideo');video.srcObject=localStream;video.setAttribute('playsinline','');video.muted=true;
+      try{await video.play()}catch{}
+      $('localEmpty').classList.add('hidden');
+      const track=localStream.getVideoTracks()[0],settings=track?.getSettings?.()||{};
+      if(settings.facingMode)cameraFacing=settings.facingMode==='environment'?'environment':'user';
       const isFront=cameraFacing==='user';
-      $('localVideo').style.transform=(isFront&&mirrorMode)?'scaleX(-1)':'none';
+      video.style.transform=(isFront&&mirrorMode)?'scaleX(-1)':'none';
       if($('mirrorBtn')){
         $('mirrorBtn').disabled=!isFront;
         $('mirrorBtn').textContent=isFront?(mirrorMode?'Mirror on':'Mirror off'):'Mirror n/a';
         $('mirrorBtn').classList.toggle('on',isFront&&mirrorMode);
       }
       if($('cameraFacingBtn'))$('cameraFacingBtn').textContent=isFront?'Front camera':'Rear camera';
-      $('boothStatus').textContent=(isFront?'Front':'Rear')+' camera ready.';
-      if(dataConn?.open && !isHost) callHost();
+      const size=settings.width&&settings.height?` · ${settings.width}×${settings.height}`:'';
+      $('boothStatus').textContent=(isFront?'Front':'Rear')+' camera ready'+size+'.';
+      if(dataConn?.open&&!isHost)callHost();
       toast((isFront?'Front':'Rear')+' camera ready');
     }catch(e){
       $('boothStatus').textContent='Camera permission failed: '+e.message;
-      toast('Camera permission is required.');
+      toast('Camera access failed. Check browser camera permissions.');
     }
   }
 
@@ -467,7 +511,7 @@
       await runCountdownAt(startAt,seconds,poseIndex,true);
       await delay(650);
     }
-    if(dataConn?.open) dataConn.send({type:'sessionDone'}); setStep(2);
+    if(dataConn?.open) dataConn.send({type:'sessionDone'}); await goPhase(2);
   }
 
   async function captureOne(){
@@ -507,9 +551,16 @@
       drawVideoCover(ctx,local,0,0,600,800);drawVideoCover(ctx,remote,600,0,600,800);
       ctx.fillStyle='rgba(255,255,255,.55)';ctx.fillRect(598,0,4,800)
     }
-    const data=c.toDataURL('image/jpeg',.95);shots.push(data);
+    const data=c.toDataURL('image/jpeg',.97);shots.push(data);
     const idx=shots.length-1;if(selected.size===0){selected.add(idx);activePhotoIndex=idx}
-    ensureCrop(idx);renderShots();setStep(2);
+    ensureCrop(idx);renderShots();updateCaptureUI();
+  }
+
+  function updateCaptureUI(){
+    const count=shots.length;
+    if($('captureCount'))$('captureCount').textContent=count+' photo'+(count===1?'':'s')+' captured';
+    if($('toSelectBtn'))$('toSelectBtn').disabled=count===0;
+    if($('toStyleBtn'))$('toStyleBtn').disabled=selected.size===0;
   }
 
   function renderShots(){
@@ -527,10 +578,11 @@
     if(shots.length)$('boothStatus').textContent=`${shots.length} photo${shots.length===1?'':'s'} captured. Tap a selected photo to edit that exact frame.`;
     if(selected.size>=1){
       if(activePhotoIndex===null||!selected.has(activePhotoIndex))activePhotoIndex=[...selected][0];
-      $('editor').classList.add('active');setStep(3);renderPhotoTabs();syncCropControls();renderStrip();
+      renderPhotoTabs();syncCropControls();renderStrip();
     }else{
-      activePhotoIndex=null;$('editor').classList.remove('active');renderPhotoTabs();
+      activePhotoIndex=null;renderPhotoTabs();
     }
+    updateCaptureUI();
   }
 
   function renderPhotoTabs(){
@@ -565,7 +617,7 @@
     renderShots();
   }
 
-  function resetShots(){ shots=[];selected.clear();cropState={};activePhotoIndex=null;frameRects=[];$('shots').innerHTML='';$('editor').classList.remove('active'); setStep(1); }
+  function resetShots(){shots=[];selected.clear();cropState={};activePhotoIndex=null;frameRects=[];$('shots').innerHTML='';updateCaptureUI();goPhase(1)}
   function setFrame(c){ frameColor=c; renderStrip(); }
 
   function applyFilter(ctx,type,w,h){
@@ -601,6 +653,25 @@
 
   const filterNames=[['none','Natural'],['warm','Warm'],['mono','B&W'],['soft','Soft'],['sepia','Sepia'],['cool','Cool'],['vintage','Vintage'],['bright','Bright'],['fade','Faded'],['contrast','Punchy']];
   function setStep(n){[1,2,3,4].forEach(i=>{const e=$('step'+i);if(e)e.classList.toggle('on',i===n)})}
+  async function goPhase(n){
+    if(n===2 && shots.length===0){toast('Take or add a photo first.');return}
+    if(n===3 && selected.size===0){toast('Choose at least one photo first.');return}
+    if(n===4 && selected.size===0){toast('Choose at least one photo first.');return}
+    currentPhase=n;setStep(n);
+    $('shootPhase')?.classList.toggle('phase-hidden',n!==1);
+    $('shootActions')?.classList.toggle('phase-hidden',n!==1);
+    $('selectPhase')?.classList.toggle('phase-hidden',n!==2);
+    const editor=$('editor');
+    if(editor){editor.classList.toggle('phase-hidden',n!==3);editor.classList.toggle('active',n===3&&selected.size>0)}
+    $('savePhase')?.classList.toggle('phase-hidden',n!==4);
+    if(n===3){renderPhotoTabs();syncCropControls();await renderStrip()}
+    if(n===4){await renderStrip();syncFinalCanvas()}
+    const booth=$('booth');if(booth)booth.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  function syncFinalCanvas(){
+    const src=$('stripCanvas'),dst=$('finalCanvas');if(!src||!dst)return;
+    dst.width=src.width;dst.height=src.height;const x=dst.getContext('2d');x.clearRect(0,0,dst.width,dst.height);x.drawImage(src,0,0)
+  }
   function toggleMirror(){
     if(cameraFacing!=='user')return;
     mirrorMode=!mirrorMode;
@@ -610,7 +681,8 @@
   }
   async function toggleCameraFacing(){
     cameraFacing=cameraFacing==='user'?'environment':'user';
-    if($('cameraFacingBtn'))$('cameraFacingBtn').textContent=cameraFacing==='user'?'Front camera':'Rear camera';
+    if(localStream){localStream.getTracks().forEach(t=>t.stop());localStream=null;await delay(180)}
+    if($('cameraFacingBtn'))$('cameraFacingBtn').textContent='Switching…';
     await enableCamera();
   }
   function toggleGrid(){$('gridline').classList.toggle('on');const on=$('gridline').classList.contains('on');$('gridBtn').textContent=on?'Grid on':'Grid off';$('gridBtn').classList.toggle('on',on)}
@@ -760,7 +832,7 @@
       ctx.restore()
     }
     drawCharacterDecor();
-    const dark=frameColor.toLowerCase()==='#1d1d1d'||layoutMode==='film';ctx.fillStyle=dark?'#fff':'#1b1a18';ctx.textAlign='center';ctx.font='600 '+Math.max(28,Math.round(W*.027))+'px DM Sans, sans-serif';ctx.fillText(($('caption').value||'our little moment ♡').slice(0,40),W/2,H-45);ctx.font='500 '+Math.max(17,Math.round(W*.014))+'px DM Sans, sans-serif';ctx.globalAlpha=.7;ctx.fillText(new Date().toLocaleDateString(),W/2,H-18);ctx.globalAlpha=1;saveStyle();syncFloatingPreview()
+    const dark=frameColor.toLowerCase()==='#1d1d1d'||layoutMode==='film';ctx.fillStyle=dark?'#fff':'#1b1a18';ctx.textAlign='center';ctx.font='600 '+Math.max(28,Math.round(W*.027))+'px DM Sans, sans-serif';ctx.fillText(($('caption').value||'our little moment ♡').slice(0,40),W/2,H-45);ctx.font='500 '+Math.max(17,Math.round(W*.014))+'px DM Sans, sans-serif';ctx.globalAlpha=.7;ctx.fillText(new Date().toLocaleDateString(),W/2,H-18);ctx.globalAlpha=1;saveStyle();syncFloatingPreview();if(currentPhase===4)syncFinalCanvas()
   }
 
   function canvasPoint(e){const c=$('stripCanvas'),r=c.getBoundingClientRect(),p=e.touches?e.touches[0]:e;return{x:(p.clientX-r.left)*(c.width/r.width),y:(p.clientY-r.top)*(c.height/r.height)}}
@@ -782,19 +854,19 @@
     if(should)syncFloatingPreview()
   }
   async function getBlob(){await renderStrip();return await new Promise(r=>$('stripCanvas').toBlob(r,'image/png',1))}
-  async function downloadStrip(){const b=await getBlob(),a=document.createElement('a');a.download='pias-booth-'+Date.now()+'.png';a.href=URL.createObjectURL(b);a.click();URL.revokeObjectURL(a.href);setStep(4)}
-  async function shareStrip(){const b=await getBlob(),f=new File([b],'pias-booth.png',{type:'image/png'});if(navigator.canShare?.({files:[f]})){await navigator.share({files:[f],title:"Pia's Booth"});setStep(4)}else downloadStrip()}
+  async function downloadStrip(){const b=await getBlob(),a=document.createElement('a');a.download='pias-booth-'+Date.now()+'.png';a.href=URL.createObjectURL(b);a.click();URL.revokeObjectURL(a.href);goPhase(4)}
+  async function shareStrip(){const b=await getBlob(),f=new File([b],'pias-booth.png',{type:'image/png'});if(navigator.canShare?.({files:[f]})){await navigator.share({files:[f],title:"Pia's Booth"});goPhase(4)}else downloadStrip()}
   $('photoImport').addEventListener('change',async e=>{
     for(const f of [...e.target.files].slice(0,12-shots.length)){
       const data=await new Promise((resolve,reject)=>{const rd=new FileReader();rd.onload=()=>resolve(rd.result);rd.onerror=reject;rd.readAsDataURL(f)});
       shots.push(data);const idx=shots.length-1;ensureCrop(idx);
       if(selected.size===0){selected.add(idx);activePhotoIndex=idx}
     }
-    e.target.value='';renderShots();setStep(2)
+    e.target.value='';renderShots();goPhase(2)
   });
   window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;if($('sideInstallBtn'))$('sideInstallBtn').style.display='grid'});if($('sideInstallBtn'))$('sideInstallBtn').onclick=async()=>{if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('sideInstallBtn').style.display='none'}};
   if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
-  loadStyle();initFilters();
+  loadStyle();initFilters();updateCaptureUI();goPhase(1);
   const cropCanvas=$('stripCanvas');
   cropCanvas.addEventListener('pointerdown',startCanvasDrag);
   cropCanvas.addEventListener('pointermove',moveCanvasDrag);
