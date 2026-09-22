@@ -93,9 +93,19 @@
     .floating-preview.show{display:block}
     .floating-preview .fp-label{font-size:9px;font-weight:900;text-align:center;margin-bottom:4px;opacity:.65}
     .floating-preview canvas{display:block;width:100%;height:auto;max-height:30dvh;object-fit:contain;border-radius:8px}
-    .character-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
-    .character{border:2px solid var(--line);border-radius:12px;background:#fff;padding:10px 6px;font-weight:800;font-size:12px;min-height:62px}
-    .character.on{background:var(--rose2)}
+    .character-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:8px}
+    .character{position:relative;overflow:hidden;border:2px solid var(--line);border-radius:14px;background:#fff;padding:48px 8px 9px;font-weight:800;font-size:11px;min-height:82px;text-align:left}
+    .character::before{content:"";position:absolute;left:8px;right:8px;top:8px;height:32px;border:1.5px solid #222;border-radius:7px;background:#f4f4f4}
+    .character[data-char="valentine"]::before{background:linear-gradient(135deg,#ffb6c9,#fff0f4 55%,#ff829f)}
+    .character[data-char="y2k"]::before{background:linear-gradient(90deg,#d7d5ff,#ffcce9,#cdeeff);box-shadow:inset 0 8px #fff8}
+    .character[data-char="scrapbook"]::before{background:repeating-linear-gradient(-35deg,#f6e8c8 0 9px,#fff8df 9px 18px)}
+    .character[data-char="mascot"]::before{background:radial-gradient(circle at 25% 55%,#ffe1ea 0 8px,transparent 9px),radial-gradient(circle at 55% 45%,#d8e7ff 0 9px,transparent 10px),#fff8e9}
+    .character[data-char="stickerpop"]::before{background:radial-gradient(circle at 20% 50%,#ff9fc3 0 7px,transparent 8px),radial-gradient(circle at 52% 40%,#a8dbff 0 8px,transparent 9px),radial-gradient(circle at 78% 60%,#ffe68e 0 7px,transparent 8px),#fff}
+    .character[data-char="retro"]::before{background:linear-gradient(#201c1c 0 8px,#e9dfd1 8px 100%)}
+    .character[data-char="softblue"]::before{background:linear-gradient(145deg,#edf2ff,#d7e1ff);border-style:dashed}
+    .character[data-char="editorial"]::before{background:linear-gradient(90deg,#111 0 25%,#fff 25% 50%,#111 50% 75%,#fff 75%)}
+    .character.on{background:var(--rose2);box-shadow:inset 0 0 0 2px #111}
+    .character small{display:block;font-weight:500;opacity:.62;margin-top:2px}
     @media(max-width:600px){.floating-preview{width:min(44vw,170px);top:8px;right:8px}.character-grid{grid-template-columns:repeat(2,1fr)}}
     .shot.active-edit{outline:4px solid var(--yellow);outline-offset:2px}
     .remote-section{scroll-margin-top:14px}
@@ -268,18 +278,17 @@
               <button class="template" data-layout="postcard" onclick="setLayout('postcard',this)">✉<br>Postcard</button>
               <button class="template" data-layout="square" onclick="setLayout('square',this)">□<br>Square social</button>
             </div>
-            <label>Character frame</label>
+            <label>Template style</label>
             <div class="character-grid" id="characterGrid">
-              <button class="character on" data-char="none" onclick="setCharacterFrame('none',this)">♡<br>Clean</button>
-              <button class="character" data-char="cat" onclick="setCharacterFrame('cat',this)">🐱<br>Cat Club</button>
-              <button class="character" data-char="bunny" onclick="setCharacterFrame('bunny',this)">🐰<br>Bunny Pop</button>
-              <button class="character" data-char="bear" onclick="setCharacterFrame('bear',this)">🐻<br>Bear Hug</button>
-              <button class="character" data-char="duck" onclick="setCharacterFrame('duck',this)">🐥<br>Duckie</button>
-              <button class="character" data-char="frog" onclick="setCharacterFrame('frog',this)">🐸<br>Froggy</button>
-              <button class="character" data-char="ghost" onclick="setCharacterFrame('ghost',this)">👻<br>Ghostie</button>
-              <button class="character" data-char="angel" onclick="setCharacterFrame('angel',this)">☁️<br>Cloud Angel</button>
-              <button class="character" data-char="stars" onclick="setCharacterFrame('stars',this)">⭐<br>Star Pop</button>
-              <button class="character" data-char="hearts" onclick="setCharacterFrame('hearts',this)">💗<br>Heart Party</button>
+              <button class="character on" data-char="none" onclick="setCharacterFrame('none',this)">Clean studio<small>simple border</small></button>
+              <button class="character" data-char="valentine" onclick="setCharacterFrame('valentine',this)">Valentine doodle<small>hearts · bows · notes</small></button>
+              <button class="character" data-char="y2k" onclick="setCharacterFrame('y2k',this)">Y2K browser<small>pastel windows · chrome</small></button>
+              <button class="character" data-char="scrapbook" onclick="setCharacterFrame('scrapbook',this)">Scrapbook<small>tape · paper · doodles</small></button>
+              <button class="character" data-char="mascot" onclick="setCharacterFrame('mascot',this)">Cute mascot<small>original cat · bunny · bear</small></button>
+              <button class="character" data-char="stickerpop" onclick="setCharacterFrame('stickerpop',this)">Sticker pop<small>flowers · bubbles · charms</small></button>
+              <button class="character" data-char="retro" onclick="setCharacterFrame('retro',this)">Retro print<small>film labels · date marks</small></button>
+              <button class="character" data-char="softblue" onclick="setCharacterFrame('softblue',this)">Blue memory<small>soft stars · diary style</small></button>
+              <button class="character" data-char="editorial" onclick="setCharacterFrame('editorial',this)">Editorial B&W<small>clean fashion strip</small></button>
             </div>
             <label>Frame color</label>
             <div class="swatches">
@@ -297,8 +306,8 @@
               <div class="crop-head"><strong>Position photo</strong><span class="active-photo-badge" id="activePhotoLabel">Photo 1</span></div>
               <p class="crop-help">Tap a photo in the preview, then drag it to reposition. Use the slider to zoom. This works with mouse and touch.</p>
               <label>Photo zoom</label>
-              <input class="range" id="photoZoom" type="range" min="100" max="300" value="100" step="1" oninput="setActiveZoom(this.value)" />
-              <div class="crop-actions"><button onclick="centerActivePhoto()">Center</button><button onclick="resetActivePhoto()">Reset crop</button></div>
+              <input class="range" id="photoZoom" type="range" min="50" max="300" value="100" step="1" oninput="setActiveZoom(this.value)" />
+              <div class="crop-actions"><button onclick="setFitMode('contain')">Fit whole photo</button><button onclick="setFitMode('cover')">Fill frame</button><button onclick="centerActivePhoto()">Center</button><button onclick="resetActivePhoto()">Reset crop</button></div>
             </div>
             <label>Filter intensity</label><input class="range" id="filterIntensity" type="range" min="0" max="100" value="75" oninput="saveStyle();renderStrip()" />
             <label>Spacing</label><input class="range" id="frameGap" type="range" min="8" max="42" value="20" oninput="saveStyle();renderStrip()" />
@@ -456,12 +465,22 @@
   }
 
   function takeCompositeShot(){
-    const c=document.createElement('canvas'); c.width=1200;c.height=800; const ctx=c.getContext('2d');
-    if(soloMode || !$('remoteVideo').srcObject){ drawVideoCover(ctx,$('localVideo'),0,0,c.width,c.height); }
-    else{ drawVideoCover(ctx,$('localVideo'),0,0,600,800); drawVideoCover(ctx,$('remoteVideo'),600,0,600,800); }
-    // seam
-    if(!soloMode && $('remoteVideo').srcObject){ctx.fillStyle='rgba(255,255,255,.55)';ctx.fillRect(598,0,4,800)}
-    const data=c.toDataURL('image/jpeg',.92); shots.push(data); if(selected.size===0){selected.add(shots.length-1);activePhotoIndex=shots.length-1;} ensureCrop(shots.length-1); renderShots(); setStep(2);
+    const local=$('localVideo'),remote=$('remoteVideo'),hasRemote=!soloMode && remote.srcObject && remote.videoWidth;
+    const c=document.createElement('canvas'),ctx=c.getContext('2d');
+    if(!hasRemote){
+      c.width=local.videoWidth||1280;c.height=local.videoHeight||720;
+      ctx.save();
+      if(mirrorMode){ctx.translate(c.width,0);ctx.scale(-1,1)}
+      ctx.drawImage(local,0,0,c.width,c.height);
+      ctx.restore();
+    }else{
+      c.width=1200;c.height=800;
+      drawVideoCover(ctx,local,0,0,600,800);drawVideoCover(ctx,remote,600,0,600,800);
+      ctx.fillStyle='rgba(255,255,255,.55)';ctx.fillRect(598,0,4,800)
+    }
+    const data=c.toDataURL('image/jpeg',.95);shots.push(data);
+    const idx=shots.length-1;if(selected.size===0){selected.add(idx);activePhotoIndex=idx}
+    ensureCrop(idx);renderShots();setStep(2);
   }
 
   function renderShots(){
@@ -551,16 +570,17 @@
       d[i]=r0+(Math.max(0,Math.min(255,r))-r0)*a;d[i+1]=g0+(Math.max(0,Math.min(255,g))-g0)*a;d[i+2]=b0+(Math.max(0,Math.min(255,b))-b0)*a;
     }ctx.putImageData(im,0,0)
   }
-  function ensureCrop(i){if(!cropState[i])cropState[i]={zoom:1,panX:0,panY:0};return cropState[i]}
+  function ensureCrop(i){if(!cropState[i])cropState[i]={zoom:1,panX:0,panY:0,fit:'contain'};if(!cropState[i].fit)cropState[i].fit='contain';return cropState[i]}
   function syncCropControls(){
     if(activePhotoIndex===null)return;
     const c=ensureCrop(activePhotoIndex);
     if($('photoZoom'))$('photoZoom').value=Math.round(c.zoom*100);
     if($('activePhotoLabel'))$('activePhotoLabel').textContent='Photo '+(activePhotoIndex+1);
   }
-  function setActiveZoom(v){if(activePhotoIndex===null)return;ensureCrop(activePhotoIndex).zoom=Math.max(1,Math.min(3,Number(v)/100));renderStrip()}
+  function setActiveZoom(v){if(activePhotoIndex===null)return;ensureCrop(activePhotoIndex).zoom=Math.max(.5,Math.min(3,Number(v)/100));renderStrip()}
+  function setFitMode(mode){if(activePhotoIndex===null)return;const c=ensureCrop(activePhotoIndex);c.fit=mode;c.zoom=1;c.panX=0;c.panY=0;syncCropControls();renderStrip()}
   function centerActivePhoto(){if(activePhotoIndex===null)return;const c=ensureCrop(activePhotoIndex);c.panX=0;c.panY=0;renderStrip()}
-  function resetActivePhoto(){if(activePhotoIndex===null)return;cropState[activePhotoIndex]={zoom:1,panX:0,panY:0};syncCropControls();renderStrip()}
+  function resetActivePhoto(){if(activePhotoIndex===null)return;cropState[activePhotoIndex]={zoom:1,panX:0,panY:0,fit:'contain'};syncCropControls();renderStrip()}
 
   async function renderStrip(){
     const count=selected.size;if(count<1)return;
@@ -571,7 +591,7 @@
     async function draw(im,shotIndex,x,y,w,h,r=12){
       frameRects.push({shotIndex,x,y,w,h});
       const tmp=document.createElement('canvas');tmp.width=Math.max(1,Math.round(w));tmp.height=Math.max(1,Math.round(h));const tx=tmp.getContext('2d'),crop=ensureCrop(shotIndex);
-      const cover=Math.max(w/im.width,h/im.height),scale=cover*crop.zoom,dw=im.width*scale,dh=im.height*scale,overflowX=Math.max(0,dw-w),overflowY=Math.max(0,dh-h);
+      const base=crop.fit==='cover'?Math.max(w/im.width,h/im.height):Math.min(w/im.width,h/im.height),scale=base*crop.zoom,dw=im.width*scale,dh=im.height*scale,overflowX=Math.max(0,dw-w),overflowY=Math.max(0,dh-h);
       const dx=(w-dw)/2 + crop.panX*(overflowX/2),dy=(h-dh)/2 + crop.panY*(overflowY/2);
       tx.drawImage(im,dx,dy,dw,dh);applyFilter(tx,$('filterSelect').value,tmp.width,tmp.height);
       ctx.save();ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.clip();ctx.drawImage(tmp,x,y,w,h);
@@ -587,19 +607,67 @@
     if(layoutMode==='story'){const pad=60,ph=(H-250-gap*(count-1))/count;for(let i=0;i<count;i++)await draw(imgs[i],picks[i],pad,80+i*(ph+gap),W-pad*2,ph,18)}
     if(layoutMode==='wide'){if(count===1)await draw(imgs[0],picks[0],38,38,W-76,H-170,18);else{const rows=Math.ceil(count/2),pw=(W-76-gap)/2,ph=(H-76-95-gap*(rows-1))/rows;for(let i=0;i<count;i++)await draw(imgs[i],picks[i],38+(i%2)*(pw+gap),38+Math.floor(i/2)*(ph+gap),pw,ph,16)}}
     if(layoutMode==='postcard'){const pad=45;if(count===1)await draw(imgs[0],picks[0],pad,pad,W-pad*2,H-pad*2-105,18);else{const pw=Math.round(W*.61),ph=H-pad*2;await draw(imgs[0],picks[0],pad,pad,pw,ph,18);const side=count-1,sh=(ph-gap*(side-1))/side;for(let i=1;i<count;i++)await draw(imgs[i],picks[i],pw+pad+gap,pad+(i-1)*(sh+gap),W-pw-pad*2-gap,sh,10)}}
+    function heart(x,y,sz,fill,stroke){
+      ctx.save();ctx.translate(x,y);ctx.beginPath();ctx.moveTo(0,sz*.28);ctx.bezierCurveTo(-sz*.65,-sz*.25,-sz*.62,-sz*.8,0,-sz*.45);ctx.bezierCurveTo(sz*.62,-sz*.8,sz*.65,-sz*.25,0,sz*.28);ctx.closePath();if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=Math.max(2,W*.002);ctx.stroke()}ctx.restore()
+    }
+    function star(x,y,r,fill,stroke){
+      ctx.save();ctx.translate(x,y);ctx.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?r:r*.42,px=Math.cos(a)*rr,py=Math.sin(a)*rr;i?ctx.lineTo(px,py):ctx.moveTo(px,py)}ctx.closePath();if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=Math.max(2,W*.002);ctx.stroke()}ctx.restore()
+    }
+    function drawMascot(x,y,kind,scale=1){
+      ctx.save();ctx.translate(x,y);ctx.scale(scale,scale);ctx.lineWidth=5;ctx.strokeStyle='#302b2b';ctx.fillStyle='#fff7f0';
+      ctx.beginPath();ctx.arc(0,0,38,0,Math.PI*2);ctx.fill();ctx.stroke();
+      if(kind==='cat'){ctx.beginPath();ctx.moveTo(-29,-25);ctx.lineTo(-34,-58);ctx.lineTo(-10,-35);ctx.moveTo(29,-25);ctx.lineTo(34,-58);ctx.lineTo(10,-35);ctx.stroke()}
+      if(kind==='bunny'){ctx.beginPath();ctx.ellipse(-17,-59,11,34,-.12,0,Math.PI*2);ctx.ellipse(17,-59,11,34,.12,0,Math.PI*2);ctx.fill();ctx.stroke()}
+      if(kind==='bear'){ctx.beginPath();ctx.arc(-30,-30,15,0,Math.PI*2);ctx.arc(30,-30,15,0,Math.PI*2);ctx.fill();ctx.stroke()}
+      ctx.fillStyle='#302b2b';ctx.beginPath();ctx.arc(-13,-4,4,0,Math.PI*2);ctx.arc(13,-4,4,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(0,10,4,0,Math.PI*2);ctx.fill();ctx.restore()
+    }
     function drawCharacterDecor(){
       if(characterFrame==='none')return;
-      const emojiMap={cat:'🐱',bunny:'🐰',bear:'🐻',duck:'🐥',frog:'🐸',ghost:'👻',angel:'☁️',stars:'⭐',hearts:'💗'};
-      const em=emojiMap[characterFrame]||'♡';
-      const size=Math.max(34,Math.round(W*.055));
-      ctx.save();ctx.font=size+'px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
-      const pts=[
-        [size*.75,size*.75],[W-size*.75,size*.75],[size*.75,H-size*1.8],[W-size*.75,H-size*1.8]
-      ];
-      pts.forEach(([x,y],i)=>{ctx.save();ctx.translate(x,y);ctx.rotate((i%2?1:-1)*0.14);ctx.fillText(em,0,0);ctx.restore()});
-      ctx.globalAlpha=.85;
-      if(characterFrame==='stars'||characterFrame==='hearts'){
-        for(let i=0;i<7;i++){const x=W*(.14+i*.12),y=size*.95+(i%2)*size*.55;ctx.fillText(em,x,y)}
+      ctx.save();
+      const lw=Math.max(3,W*.003);ctx.lineWidth=lw;ctx.strokeStyle='#2b2727';
+      if(characterFrame==='valentine'){
+        ctx.fillStyle='#ffedf2';ctx.fillRect(0,0,W,Math.max(38,H*.035));ctx.fillRect(0,H-Math.max(95,H*.075),W,Math.max(95,H*.075));
+        for(let i=0;i<7;i++)heart(W*(.08+i*.14),H*.035+(i%2)*15,W*.018,i%2?'#ff7698':'#ffd0dc','#b83c5d');
+        heart(W*.09,H*.92,W*.038,'#ff9cb5','#b83c5d');heart(W*.91,H*.88,W*.03,'#fff','#b83c5d');
+        ctx.font='700 '+Math.round(W*.028)+'px DM Sans';ctx.fillStyle='#b83c5d';ctx.textAlign='left';ctx.fillText('LOVE NOTE',W*.14,H*.92);
+        ctx.beginPath();ctx.moveTo(W*.74,H*.91);ctx.quadraticCurveTo(W*.82,H*.86,W*.9,H*.92);ctx.strokeStyle='#d85e7c';ctx.stroke()
+      }
+      if(characterFrame==='y2k'){
+        frameRects.forEach((r,i)=>{ctx.strokeStyle=i%2?'#8e7ad7':'#ef8fbd';ctx.lineWidth=lw;ctx.strokeRect(r.x-8,r.y-22,r.w+16,r.h+30);ctx.fillStyle=i%2?'#d9d1ff':'#ffd7ea';ctx.fillRect(r.x-8,r.y-22,r.w+16,20);['#ff7f9f','#ffd86f','#79d2c4'].forEach((c,j)=>{ctx.fillStyle=c;ctx.beginPath();ctx.arc(r.x+5+j*15,r.y-12,4.5,0,Math.PI*2);ctx.fill()})});
+        star(W*.09,H*.08,W*.028,'#fff3a9','#8e7ad7');star(W*.9,H*.14,W*.02,'#d9efff','#8e7ad7');
+        ctx.fillStyle='#8e7ad7';ctx.font='700 '+Math.round(W*.025)+'px monospace';ctx.textAlign='center';ctx.fillText('memory.exe',W/2,H*.975)
+      }
+      if(characterFrame==='scrapbook'){
+        ctx.fillStyle='#efe0b7';[[.06,.03,.22,.035,-.12],[.72,.04,.2,.034,.1],[.08,.89,.18,.034,.08]].forEach(a=>{ctx.save();ctx.translate(W*a[0],H*a[1]);ctx.rotate(a[4]);ctx.globalAlpha=.8;ctx.fillRect(0,0,W*a[2],H*a[3]);ctx.restore()});
+        ctx.strokeStyle='#806f56';ctx.setLineDash([10,8]);ctx.strokeRect(W*.025,H*.02,W*.95,H*.93);ctx.setLineDash([]);
+        ctx.fillStyle='#705c45';ctx.font='700 '+Math.round(W*.024)+'px DM Sans';ctx.textAlign='left';ctx.fillText('today’s little memory',W*.08,H*.965);
+        for(let i=0;i<5;i++)star(W*(.72+i*.045),H*.95,W*.012,i%2?'#f3b5c4':'#b8d5ef','#705c45')
+      }
+      if(characterFrame==='mascot'){
+        drawMascot(W*.1,H*.08,'cat',W/900);drawMascot(W*.88,H*.1,'bunny',W/900);drawMascot(W*.12,H*.91,'bear',W/900);
+        ctx.strokeStyle='#e596ae';ctx.beginPath();ctx.arc(W*.88,H*.9,W*.035,0,Math.PI*2);ctx.stroke();
+        ctx.font='700 '+Math.round(W*.024)+'px DM Sans';ctx.fillStyle='#674b58';ctx.textAlign='right';ctx.fillText('best day club',W*.92,H*.96)
+      }
+      if(characterFrame==='stickerpop'){
+        const dots=[['#ff9fc3',.08,.08],['#9dd8ff',.9,.08],['#ffe889',.12,.9],['#bde9ba',.88,.88]];
+        dots.forEach(([c,x,y],i)=>{ctx.fillStyle=c;ctx.beginPath();ctx.arc(W*x,H*y,W*(.035+i*.004),0,Math.PI*2);ctx.fill();star(W*x,H*y,W*.018,'#fff','#333')});
+        for(let i=0;i<6;i++){ctx.fillStyle=i%2?'#ffc8de':'#d8d0ff';ctx.beginPath();ctx.arc(W*(.22+i*.12),H*.035+(i%2)*10,W*.013,0,Math.PI*2);ctx.fill()}
+        ctx.font='800 '+Math.round(W*.025)+'px DM Sans';ctx.fillStyle='#302b2b';ctx.textAlign='center';ctx.fillText('SNAP • SMILE • KEEP',W/2,H*.97)
+      }
+      if(characterFrame==='retro'){
+        ctx.strokeStyle='#1b1818';ctx.lineWidth=lw*1.3;ctx.strokeRect(W*.025,H*.018,W*.95,H*.94);
+        ctx.fillStyle='#1b1818';ctx.fillRect(0,0,W,H*.035);ctx.fillStyle='#e8dfd2';ctx.font='700 '+Math.round(W*.019)+'px monospace';ctx.textAlign='left';ctx.fillText('MAIDEN SOPHIA / FRAME 01',W*.04,H*.025);
+        ctx.fillStyle='#b5483e';ctx.font='700 '+Math.round(W*.022)+'px monospace';ctx.textAlign='right';ctx.fillText(new Date().toISOString().slice(0,10),W*.94,H*.975)
+      }
+      if(characterFrame==='softblue'){
+        ctx.strokeStyle='#8f9fd5';ctx.setLineDash([7,7]);ctx.lineWidth=lw;ctx.strokeRect(W*.035,H*.025,W*.93,H*.91);ctx.setLineDash([]);
+        for(let i=0;i<6;i++)star(W*(.08+i*.17),H*(i%2?.06:.035),W*.014,i%2?'#d7e1ff':'#fff','#8f9fd5');
+        ctx.fillStyle='#7888bf';ctx.font='italic '+Math.round(W*.026)+'px Georgia';ctx.textAlign='center';ctx.fillText('memories, softly kept',W/2,H*.97)
+      }
+      if(characterFrame==='editorial'){
+        ctx.strokeStyle='#111';ctx.lineWidth=lw*2;ctx.strokeRect(W*.02,H*.014,W*.96,H*.95);
+        ctx.fillStyle='#111';ctx.font='700 '+Math.round(W*.027)+'px DM Sans';ctx.textAlign='left';ctx.fillText('PORTRAIT STUDY',W*.045,H*.045);
+        ctx.font='500 '+Math.round(W*.016)+'px DM Sans';ctx.fillText('MAIDEN SOPHIA · '+new Date().getFullYear(),W*.045,H*.972)
       }
       ctx.restore()
     }
