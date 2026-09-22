@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DuoBooth — Shared Online Photobooth</title>
+  <title>Pia's Booth</title>
   <meta name="description" content="A portable browser photobooth for solo and long-distance photo strips." />
   <meta name="theme-color" content="#fff8ee" />
   <link rel="manifest" href="manifest.webmanifest" />
@@ -89,6 +89,10 @@
     .crop-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
     .crop-actions button{border:2px solid var(--line);border-radius:10px;background:white;padding:9px;font-weight:800}
     .active-photo-badge{display:inline-flex;border:2px solid var(--line);border-radius:999px;padding:5px 9px;background:var(--yellow);font-size:11px;font-weight:800}
+    .side-tools{position:fixed;right:12px;top:50%;transform:translateY(-50%);z-index:1000;display:flex;flex-direction:column;gap:10px}
+    .side-tool{width:46px;height:46px;border:2px solid var(--line);border-radius:14px;background:#fff;box-shadow:4px 4px 0 var(--line);font-size:19px;font-weight:800;display:grid;place-items:center;cursor:pointer}
+    .side-tool:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--line)}
+    @media(max-width:600px){.side-tools{right:9px;top:auto;bottom:12px;transform:none;gap:8px}.side-tool{width:44px;height:44px;border-radius:12px;font-size:18px}}
     .floating-preview{display:none;position:fixed;right:10px;top:10px;z-index:999;background:#fff;border:2px solid var(--line);border-radius:14px;padding:7px;box-shadow:4px 4px 0 var(--line);width:min(42vw,180px)}
     .floating-preview.show{display:block}
     .floating-preview .fp-label{font-size:9px;font-weight:900;text-align:center;margin-bottom:4px;opacity:.65}
@@ -176,7 +180,7 @@
 <body>
   <main class="app">
     <nav class="nav">
-      <div class="brand">duo<span>booth</span> ♡</div>
+      <div class="brand">Pia's <span>Booth</span> ♡</div>
       <div class="pill">camera stays peer-to-peer</div>
     </nav>
 
@@ -187,8 +191,6 @@
         <p>Set up your phone, open the booth, and start shooting. Choose 1–4 favorites, reposition them freely, then export Polaroids, classic strips, film frames, grids, stories, and more.</p>
         <div class="actions">
           <button class="btn primary" onclick="startSolo()">Start photobooth ♡</button>
-          <button class="btn secondary" onclick="toggleRemoteMode()">Long-distance mode</button>
-          <button class="btn" id="installBtn" style="display:none">Install app</button>
         </div>
         <div class="mini-note">No account required. Tap “Start photobooth,” allow camera access once, place your phone, and shoot. Captures stay in your browser unless you save or share them.</div>
       </div>
@@ -321,6 +323,10 @@
 
     <footer class="footer">Dedicated to Sophia and her photobooth escapades. ♡</footer>
   </main>
+  <div id="sideTools" class="side-tools">
+    <button class="side-tool" onclick="toggleRemoteMode()" aria-label="Long-distance mode" title="Long-distance mode">🌐</button>
+    <button class="side-tool" id="sideInstallBtn" style="display:none" aria-label="Install app" title="Install app">⬇</button>
+  </div>
   <div id="toast" class="toast"></div>
   <div id="floatingPreview" class="floating-preview" aria-hidden="true">
     <div class="fp-label">EDIT PREVIEW</div>
@@ -399,7 +405,7 @@
     soloMode=false; isHost=true; roomCode=randomCode(); $('stage').classList.remove('solo-stage');
     $('hostCode').style.display='block'; $('hostCode').innerHTML=`Room code: <b style="font-size:20px;letter-spacing:.12em">${roomCode}</b><br><span class="muted">Share this code with your partner.</span>`;
     $('roomLabel').textContent='Room '+roomCode+' · you are hosting'; showBooth();
-    peer = new Peer('duobooth-'+roomCode.toLowerCase(), {debug:1}); setupPeerEvents();
+    peer = new Peer('pias-booth-'+roomCode.toLowerCase(), {debug:1}); setupPeerEvents();
     peer.on('open', async()=>{ updateConnection(false,'Waiting for partner'); await enableCamera(); });
   }
 
@@ -409,7 +415,7 @@
     peer = new Peer(undefined,{debug:1}); setupPeerEvents();
     peer.on('open', async()=>{
       await enableCamera();
-      dataConn = peer.connect('duobooth-'+roomCode.toLowerCase(),{reliable:true}); setupDataConn();
+      dataConn = peer.connect('pias-booth-'+roomCode.toLowerCase(),{reliable:true}); setupDataConn();
       dataConn.on('open',()=>{ $('joinStatus').textContent='Connected to room '+roomCode; dataConn.send({type:'hello'}); callHost(); });
     });
   }
@@ -417,7 +423,7 @@
   function callHost(){
     if(!peer || !localStream || isHost || !roomCode) return;
     if(mediaCall) mediaCall.close();
-    mediaCall = peer.call('duobooth-'+roomCode.toLowerCase(), localStream);
+    mediaCall = peer.call('pias-booth-'+roomCode.toLowerCase(), localStream);
     mediaCall.on('stream', onRemoteStream);
   }
 
@@ -541,7 +547,7 @@
   }
 
   function downloadStrip(){
-    renderStrip().then(()=>{ const a=document.createElement('a');a.download=`duobooth-${Date.now()}.png`;a.href=$('stripCanvas').toDataURL('image/png');a.click(); });
+    renderStrip().then(()=>{ const a=document.createElement('a');a.download=`pias-booth-${Date.now()}.png`;a.href=$('stripCanvas').toDataURL('image/png');a.click(); });
   }
 
 
@@ -552,8 +558,8 @@
   function setLayout(id,el){layoutMode=id;document.querySelectorAll('.template').forEach(x=>x.classList.remove('on'));el?.classList.add('on');saveStyle();renderStrip()}
   function setCharacterFrame(id,el){characterFrame=id;document.querySelectorAll('.character').forEach(x=>x.classList.remove('on'));el?.classList.add('on');saveStyle();renderStrip()}
   function initFilters(){const box=$('filterGrid'); if(!box)return; filterNames.forEach(([id,name])=>{const b=document.createElement('button');b.className='filter-chip'+(id===$('filterSelect').value?' on':'');b.textContent=name;b.onclick=()=>{$('filterSelect').value=id;box.querySelectorAll('.filter-chip').forEach(x=>x.classList.remove('on'));b.classList.add('on');saveStyle();renderStrip()};box.appendChild(b)})}
-  function saveStyle(){try{localStorage.setItem('duobooth-style',JSON.stringify({layoutMode,characterFrame,frameColor,filter:$('filterSelect')?.value||'none',intensity:$('filterIntensity')?.value||75,gap:$('frameGap')?.value||20,caption:$('caption')?.value||''}))}catch{}}
-  function loadStyle(){try{const st=JSON.parse(localStorage.getItem('duobooth-style')||'{}');layoutMode=st.layoutMode||layoutMode;characterFrame=st.characterFrame||characterFrame;frameColor=st.frameColor||frameColor;if(st.filter)$('filterSelect').value=st.filter;if(st.intensity)$('filterIntensity').value=st.intensity;if(st.gap)$('frameGap').value=st.gap;if(st.caption)$('caption').value=st.caption;$('customColor').value=frameColor;document.querySelectorAll('.template').forEach(x=>x.classList.toggle('on',x.dataset.layout===layoutMode));document.querySelectorAll('.character').forEach(x=>x.classList.toggle('on',x.dataset.char===characterFrame))}catch{}}
+  function saveStyle(){try{localStorage.setItem('pias-booth-style',JSON.stringify({layoutMode,characterFrame,frameColor,filter:$('filterSelect')?.value||'none',intensity:$('filterIntensity')?.value||75,gap:$('frameGap')?.value||20,caption:$('caption')?.value||''}))}catch{}}
+  function loadStyle(){try{const st=JSON.parse(localStorage.getItem('pias-booth-style')||'{}');layoutMode=st.layoutMode||layoutMode;characterFrame=st.characterFrame||characterFrame;frameColor=st.frameColor||frameColor;if(st.filter)$('filterSelect').value=st.filter;if(st.intensity)$('filterIntensity').value=st.intensity;if(st.gap)$('frameGap').value=st.gap;if(st.caption)$('caption').value=st.caption;$('customColor').value=frameColor;document.querySelectorAll('.template').forEach(x=>x.classList.toggle('on',x.dataset.layout===layoutMode));document.querySelectorAll('.character').forEach(x=>x.classList.toggle('on',x.dataset.char===characterFrame))}catch{}}
   function setFrame(c){frameColor=c;if($('customColor'))$('customColor').value=c;saveStyle();renderStrip()}
   function applyFilter(ctx,type,w,h){
     if(type==='none')return;const im=ctx.getImageData(0,0,w,h),d=im.data,a=(Number($('filterIntensity')?.value)||75)/100;
@@ -694,8 +700,8 @@
     if(should)syncFloatingPreview()
   }
   async function getBlob(){await renderStrip();return await new Promise(r=>$('stripCanvas').toBlob(r,'image/png',1))}
-  async function downloadStrip(){const b=await getBlob(),a=document.createElement('a');a.download='duobooth-'+Date.now()+'.png';a.href=URL.createObjectURL(b);a.click();URL.revokeObjectURL(a.href);setStep(4)}
-  async function shareStrip(){const b=await getBlob(),f=new File([b],'duobooth.png',{type:'image/png'});if(navigator.canShare?.({files:[f]})){await navigator.share({files:[f],title:'DuoBooth'});setStep(4)}else downloadStrip()}
+  async function downloadStrip(){const b=await getBlob(),a=document.createElement('a');a.download='pias-booth-'+Date.now()+'.png';a.href=URL.createObjectURL(b);a.click();URL.revokeObjectURL(a.href);setStep(4)}
+  async function shareStrip(){const b=await getBlob(),f=new File([b],'pias-booth.png',{type:'image/png'});if(navigator.canShare?.({files:[f]})){await navigator.share({files:[f],title:"Pia's Booth"});setStep(4)}else downloadStrip()}
   $('photoImport').addEventListener('change',async e=>{
     for(const f of [...e.target.files].slice(0,12-shots.length)){
       const data=await new Promise((resolve,reject)=>{const rd=new FileReader();rd.onload=()=>resolve(rd.result);rd.onerror=reject;rd.readAsDataURL(f)});
@@ -704,7 +710,7 @@
     }
     e.target.value='';renderShots();setStep(2)
   });
-  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('installBtn').style.display='inline-block'});$('installBtn').onclick=async()=>{if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('installBtn').style.display='none'}};
+  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;if($('sideInstallBtn'))$('sideInstallBtn').style.display='grid'});if($('sideInstallBtn'))$('sideInstallBtn').onclick=async()=>{if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('sideInstallBtn').style.display='none'}};
   if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
   loadStyle();initFilters();
   const cropCanvas=$('stripCanvas');
