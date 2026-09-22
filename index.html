@@ -87,6 +87,10 @@
     .crop-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
     .crop-help{font-size:12px;line-height:1.45;margin:0 0 10px;opacity:.72}
     .crop-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+    .photo-tabs{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0 12px}
+    .photo-tab{border:2px solid var(--line);border-radius:999px;background:#fff;padding:7px 10px;font-weight:800;font-size:11px}
+    .photo-tab.on{background:var(--yellow)}
+    .shot .remove-select{position:absolute;left:7px;top:7px;z-index:4;width:27px;height:27px;border:2px solid var(--line);border-radius:50%;background:#fff;display:grid;place-items:center;font-weight:900;line-height:1;padding:0}
     .crop-actions button{border:2px solid var(--line);border-radius:10px;background:white;padding:9px;font-weight:800}
     .active-photo-badge{display:inline-flex;border:2px solid var(--line);border-radius:999px;padding:5px 9px;background:var(--yellow);font-size:11px;font-weight:800}
     .side-tools{position:fixed;right:12px;top:50%;transform:translateY(-50%);z-index:1000;display:flex;flex-direction:column;gap:10px}
@@ -250,7 +254,7 @@
           <div class="controls">
             <div class="connection-badge"><span class="dot ok" id="connectionDot"></span><span id="connectionText">In-person booth</span></div>
             <button class="btn" onclick="enableCamera()">Restart / switch on camera</button>
-            <div class="utility-grid" style="margin-top:10px"><button class="utility on" id="mirrorBtn" onclick="toggleMirror()">Mirror on</button><button class="utility" id="gridBtn" onclick="toggleGrid()">Grid off</button></div>
+            <div class="utility-grid" style="margin-top:10px"><button class="utility on" id="mirrorBtn" onclick="toggleMirror()">Mirror on</button><button class="utility" id="gridBtn" onclick="toggleGrid()">Grid off</button><button class="utility" id="cameraFacingBtn" onclick="toggleCameraFacing()">Front camera</button></div>
             <label>Shot delay</label>
             <select id="delaySelect"><option value="0">No delay</option><option value="3">3 seconds</option><option value="5">5 seconds</option><option value="10">10 seconds</option></select>
             <label>Session</label>
@@ -306,9 +310,10 @@
             <select id="filterSelect" style="display:none"><option value="none">Natural</option><option value="warm">Warm</option><option value="mono">B&W</option><option value="soft">Soft</option><option value="sepia">Sepia</option><option value="cool">Cool</option><option value="vintage">Vintage</option><option value="bright">Bright</option><option value="fade">Faded</option><option value="contrast">Punchy</option></select>
             <div class="crop-tools">
               <div class="crop-head"><strong>Position photo</strong><span class="active-photo-badge" id="activePhotoLabel">Photo 1</span></div>
-              <p class="crop-help">Tap a photo in the preview, then drag it to reposition. Use the slider to zoom. This works with mouse and touch.</p>
-              <label>Photo zoom</label>
-              <input class="range" id="photoZoom" type="range" min="50" max="300" value="100" step="1" oninput="setActiveZoom(this.value)" />
+              <p class="crop-help">Choose a photo, then drag and resize it independently inside its own frame.</p>
+              <div class="photo-tabs" id="photoTabs"></div>
+              <label>Photo size / zoom</label>
+              <input class="range" id="photoZoom" type="range" min="25" max="400" value="100" step="1" oninput="setActiveZoom(this.value)" />
               <div class="crop-actions"><button onclick="setFitMode('contain')">Fit whole photo</button><button onclick="setFitMode('cover')">Fill frame</button><button onclick="centerActivePhoto()">Center</button><button onclick="resetActivePhoto()">Reset crop</button></div>
             </div>
             <label>Filter intensity</label><input class="range" id="filterIntensity" type="range" min="0" max="100" value="75" oninput="saveStyle();renderStrip()" />
@@ -347,7 +352,7 @@
   let peer = null, dataConn = null, mediaCall = null;
   let localStream = null, remoteStream = null;
   let roomCode = null, isHost = false, soloMode = false;
-  let shots = [], selected = new Set(), frameColor = '#f4c7d2', layoutMode='classic', characterFrame='none', mirrorMode=true, deferredPrompt=null, cropState={}, activePhotoIndex=null, frameRects=[], dragState=null;
+  let shots = [], selected = new Set(), frameColor = '#f4c7d2', layoutMode='classic', characterFrame='none', mirrorMode=true, cameraFacing='user', deferredPrompt=null, cropState={}, activePhotoIndex=null, frameRects=[], dragState=null;
 
   const $ = id => document.getElementById(id);
   const delay = ms => new Promise(r => setTimeout(r, ms));
@@ -366,11 +371,20 @@
   async function enableCamera(){
     try{
       if(localStream) localStream.getTracks().forEach(t=>t.stop());
-      localStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:1280},height:{ideal:720}},audio:false});
-      $('localVideo').srcObject = localStream; $('localEmpty').classList.add('hidden');
-      $('boothStatus').textContent='Camera ready.';
+      const constraints={video:{facingMode:{ideal:cameraFacing},width:{ideal:1920},height:{ideal:1080}},audio:false};
+      localStream=await navigator.mediaDevices.getUserMedia(constraints);
+      $('localVideo').srcObject=localStream;$('localEmpty').classList.add('hidden');
+      const isFront=cameraFacing==='user';
+      $('localVideo').style.transform=(isFront&&mirrorMode)?'scaleX(-1)':'none';
+      if($('mirrorBtn')){
+        $('mirrorBtn').disabled=!isFront;
+        $('mirrorBtn').textContent=isFront?(mirrorMode?'Mirror on':'Mirror off'):'Mirror n/a';
+        $('mirrorBtn').classList.toggle('on',isFront&&mirrorMode);
+      }
+      if($('cameraFacingBtn'))$('cameraFacingBtn').textContent=isFront?'Front camera':'Rear camera';
+      $('boothStatus').textContent=(isFront?'Front':'Rear')+' camera ready.';
       if(dataConn?.open && !isHost) callHost();
-      toast('Camera ready');
+      toast((isFront?'Front':'Rear')+' camera ready');
     }catch(e){
       $('boothStatus').textContent='Camera permission failed: '+e.message;
       toast('Camera permission is required.');
@@ -476,7 +490,7 @@
     if(!hasRemote){
       c.width=local.videoWidth||1280;c.height=local.videoHeight||720;
       ctx.save();
-      if(mirrorMode){ctx.translate(c.width,0);ctx.scale(-1,1)}
+      if(cameraFacing==='user'&&mirrorMode){ctx.translate(c.width,0);ctx.scale(-1,1)}
       ctx.drawImage(local,0,0,c.width,c.height);
       ctx.restore();
     }else{
@@ -490,27 +504,52 @@
   }
 
   function renderShots(){
-    const wrap=$('shots'); wrap.innerHTML='';
+    const wrap=$('shots');wrap.innerHTML='';
     shots.forEach((src,i)=>{
       const el=document.createElement('div');
       el.className='shot'+(selected.has(i)?' selected':'')+(activePhotoIndex===i?' active-edit':'');
       el.onclick=()=>toggleSelect(i);
-      el.innerHTML=`<img src="${src}" alt="shot ${i+1}"><span class="num">${i+1}</span>`;
+      el.innerHTML=`<img src="${src}" alt="shot ${i+1}"><span class="num">${i+1}</span>`+
+        (selected.has(i)?`<button class="remove-select" aria-label="Remove photo ${i+1}" title="Remove from frame">×</button>`:'');
+      const rm=el.querySelector('.remove-select');
+      if(rm)rm.onclick=e=>{e.stopPropagation();removeSelectedPhoto(i)};
       wrap.appendChild(el);
     });
-    if(shots.length){ $('boothStatus').textContent=`${shots.length} photo${shots.length===1?'':'s'} captured. Tap any 1–4 photos to edit.`; }
+    if(shots.length)$('boothStatus').textContent=`${shots.length} photo${shots.length===1?'':'s'} captured. Tap a selected photo to edit that exact frame.`;
     if(selected.size>=1){
-      if(activePhotoIndex===null || !selected.has(activePhotoIndex)) activePhotoIndex=[...selected][0];
-      $('editor').classList.add('active'); setStep(3); syncCropControls(); renderStrip();
-    } else { activePhotoIndex=null; $('editor').classList.remove('active'); }
+      if(activePhotoIndex===null||!selected.has(activePhotoIndex))activePhotoIndex=[...selected][0];
+      $('editor').classList.add('active');setStep(3);renderPhotoTabs();syncCropControls();renderStrip();
+    }else{
+      activePhotoIndex=null;$('editor').classList.remove('active');renderPhotoTabs();
+    }
+  }
+
+  function renderPhotoTabs(){
+    const box=$('photoTabs');if(!box)return;box.innerHTML='';
+    [...selected].sort((a,b)=>a-b).forEach((i,order)=>{
+      const b=document.createElement('button');
+      b.className='photo-tab'+(activePhotoIndex===i?' on':'');
+      b.textContent='Photo '+(order+1);
+      b.onclick=()=>setActivePhoto(i);
+      box.appendChild(b);
+    });
+  }
+
+  function setActivePhoto(i){
+    if(!selected.has(i))return;
+    activePhotoIndex=i;ensureCrop(i);renderPhotoTabs();syncCropControls();renderStrip();
+  }
+
+  function removeSelectedPhoto(i){
+    selected.delete(i);
+    if(activePhotoIndex===i)activePhotoIndex=[...selected][0]??null;
+    renderShots();
   }
 
   function toggleSelect(i){
     if(selected.has(i)){
-      if(activePhotoIndex===i && selected.size===1){ selected.delete(i); activePhotoIndex=null; }
-      else if(activePhotoIndex===i){ activePhotoIndex=[...selected].find(x=>x!==i) ?? null; selected.delete(i); }
-      else { activePhotoIndex=i; ensureCrop(i); }
-    } else {
+      activePhotoIndex=i;ensureCrop(i);
+    }else{
       if(selected.size>=4){toast('You can combine up to four photos.');return;}
       selected.add(i);activePhotoIndex=i;ensureCrop(i);
     }
@@ -553,7 +592,18 @@
 
   const filterNames=[['none','Natural'],['warm','Warm'],['mono','B&W'],['soft','Soft'],['sepia','Sepia'],['cool','Cool'],['vintage','Vintage'],['bright','Bright'],['fade','Faded'],['contrast','Punchy']];
   function setStep(n){[1,2,3,4].forEach(i=>{const e=$('step'+i);if(e)e.classList.toggle('on',i===n)})}
-  function toggleMirror(){mirrorMode=!mirrorMode;$('mirrorBtn').textContent=mirrorMode?'Mirror on':'Mirror off';$('mirrorBtn').classList.toggle('on',mirrorMode);$('localVideo').style.transform=mirrorMode?'scaleX(-1)':'none'}
+  function toggleMirror(){
+    if(cameraFacing!=='user')return;
+    mirrorMode=!mirrorMode;
+    $('mirrorBtn').textContent=mirrorMode?'Mirror on':'Mirror off';
+    $('mirrorBtn').classList.toggle('on',mirrorMode);
+    $('localVideo').style.transform=mirrorMode?'scaleX(-1)':'none'
+  }
+  async function toggleCameraFacing(){
+    cameraFacing=cameraFacing==='user'?'environment':'user';
+    if($('cameraFacingBtn'))$('cameraFacingBtn').textContent=cameraFacing==='user'?'Front camera':'Rear camera';
+    await enableCamera();
+  }
   function toggleGrid(){$('gridline').classList.toggle('on');const on=$('gridline').classList.contains('on');$('gridBtn').textContent=on?'Grid on':'Grid off';$('gridBtn').classList.toggle('on',on)}
   function setLayout(id,el){layoutMode=id;document.querySelectorAll('.template').forEach(x=>x.classList.remove('on'));el?.classList.add('on');saveStyle();renderStrip()}
   function setCharacterFrame(id,el){characterFrame=id;document.querySelectorAll('.character').forEach(x=>x.classList.remove('on'));el?.classList.add('on');saveStyle();renderStrip()}
@@ -576,17 +626,40 @@
       d[i]=r0+(Math.max(0,Math.min(255,r))-r0)*a;d[i+1]=g0+(Math.max(0,Math.min(255,g))-g0)*a;d[i+2]=b0+(Math.max(0,Math.min(255,b))-b0)*a;
     }ctx.putImageData(im,0,0)
   }
-  function ensureCrop(i){if(!cropState[i])cropState[i]={zoom:1,panX:0,panY:0,fit:'contain'};if(!cropState[i].fit)cropState[i].fit='contain';return cropState[i]}
+  function ensureCrop(i){
+    if(!cropState[i])cropState[i]={zoom:1,panX:0,panY:0,fit:'contain'};
+    if(!cropState[i].fit)cropState[i].fit='contain';
+    return cropState[i]
+  }
   function syncCropControls(){
     if(activePhotoIndex===null)return;
     const c=ensureCrop(activePhotoIndex);
     if($('photoZoom'))$('photoZoom').value=Math.round(c.zoom*100);
-    if($('activePhotoLabel'))$('activePhotoLabel').textContent='Photo '+(activePhotoIndex+1);
+    if($('activePhotoLabel')){
+      const order=[...selected].sort((a,b)=>a-b).indexOf(activePhotoIndex);
+      $('activePhotoLabel').textContent='Photo '+(order>=0?order+1:activePhotoIndex+1);
+    }
+    renderPhotoTabs()
   }
-  function setActiveZoom(v){if(activePhotoIndex===null)return;ensureCrop(activePhotoIndex).zoom=Math.max(.5,Math.min(3,Number(v)/100));renderStrip()}
-  function setFitMode(mode){if(activePhotoIndex===null)return;const c=ensureCrop(activePhotoIndex);c.fit=mode;c.zoom=1;c.panX=0;c.panY=0;syncCropControls();renderStrip()}
-  function centerActivePhoto(){if(activePhotoIndex===null)return;const c=ensureCrop(activePhotoIndex);c.panX=0;c.panY=0;renderStrip()}
-  function resetActivePhoto(){if(activePhotoIndex===null)return;cropState[activePhotoIndex]={zoom:1,panX:0,panY:0,fit:'contain'};syncCropControls();renderStrip()}
+  function setActiveZoom(v){
+    if(activePhotoIndex===null)return;
+    ensureCrop(activePhotoIndex).zoom=Math.max(.25,Math.min(4,Number(v)/100));
+    renderStrip()
+  }
+  function setFitMode(mode){
+    if(activePhotoIndex===null)return;
+    const c=ensureCrop(activePhotoIndex);c.fit=mode;c.zoom=1;c.panX=0;c.panY=0;
+    syncCropControls();renderStrip()
+  }
+  function centerActivePhoto(){
+    if(activePhotoIndex===null)return;
+    const c=ensureCrop(activePhotoIndex);c.panX=0;c.panY=0;renderStrip()
+  }
+  function resetActivePhoto(){
+    if(activePhotoIndex===null)return;
+    cropState[activePhotoIndex]={zoom:1,panX:0,panY:0,fit:'contain'};
+    syncCropControls();renderStrip()
+  }
 
   async function renderStrip(){
     const count=selected.size;if(count<1)return;
@@ -597,8 +670,8 @@
     async function draw(im,shotIndex,x,y,w,h,r=12){
       frameRects.push({shotIndex,x,y,w,h});
       const tmp=document.createElement('canvas');tmp.width=Math.max(1,Math.round(w));tmp.height=Math.max(1,Math.round(h));const tx=tmp.getContext('2d'),crop=ensureCrop(shotIndex);
-      const base=crop.fit==='cover'?Math.max(w/im.width,h/im.height):Math.min(w/im.width,h/im.height),scale=base*crop.zoom,dw=im.width*scale,dh=im.height*scale,overflowX=Math.max(0,dw-w),overflowY=Math.max(0,dh-h);
-      const dx=(w-dw)/2 + crop.panX*(overflowX/2),dy=(h-dh)/2 + crop.panY*(overflowY/2);
+      const base=crop.fit==='cover'?Math.max(w/im.width,h/im.height):Math.min(w/im.width,h/im.height),scale=base*crop.zoom,dw=im.width*scale,dh=im.height*scale;
+      const dx=(w-dw)/2 + crop.panX*w,dy=(h-dh)/2 + crop.panY*h;
       tx.drawImage(im,dx,dy,dw,dh);applyFilter(tx,$('filterSelect').value,tmp.width,tmp.height);
       ctx.save();ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.clip();ctx.drawImage(tmp,x,y,w,h);
       if(activePhotoIndex===shotIndex){ctx.strokeStyle='rgba(255,255,255,.96)';ctx.lineWidth=Math.max(4,W*.004);ctx.strokeRect(x+3,y+3,w-6,h-6)}
@@ -683,8 +756,8 @@
 
   function canvasPoint(e){const c=$('stripCanvas'),r=c.getBoundingClientRect(),p=e.touches?e.touches[0]:e;return{x:(p.clientX-r.left)*(c.width/r.width),y:(p.clientY-r.top)*(c.height/r.height)}}
   function rectAt(pt){for(let i=frameRects.length-1;i>=0;i--){const r=frameRects[i];if(pt.x>=r.x&&pt.x<=r.x+r.w&&pt.y>=r.y&&pt.y<=r.y+r.h)return r}return null}
-  function startCanvasDrag(e){if(selected.size<1)return;const pt=canvasPoint(e),r=rectAt(pt);if(!r)return;activePhotoIndex=r.shotIndex;ensureCrop(activePhotoIndex);syncCropControls();renderShots();dragState={startX:pt.x,startY:pt.y,panX:cropState[activePhotoIndex].panX,panY:cropState[activePhotoIndex].panY,rect:r};$('stripCanvas').classList.add('dragging');if(e.cancelable)e.preventDefault()}
-  function moveCanvasDrag(e){if(!dragState||activePhotoIndex===null)return;const pt=canvasPoint(e),c=ensureCrop(activePhotoIndex),dx=(pt.x-dragState.startX)/Math.max(1,dragState.rect.w),dy=(pt.y-dragState.startY)/Math.max(1,dragState.rect.h);c.panX=Math.max(-1,Math.min(1,dragState.panX+dx*2.2));c.panY=Math.max(-1,Math.min(1,dragState.panY+dy*2.2));renderStrip();if(e.cancelable)e.preventDefault()}
+  function startCanvasDrag(e){if(selected.size<1)return;const pt=canvasPoint(e),r=rectAt(pt);if(!r)return;activePhotoIndex=r.shotIndex;ensureCrop(activePhotoIndex);renderPhotoTabs();syncCropControls();dragState={startX:pt.x,startY:pt.y,panX:cropState[activePhotoIndex].panX,panY:cropState[activePhotoIndex].panY,rect:r};$('stripCanvas').classList.add('dragging');renderStrip();if(e.cancelable)e.preventDefault()}
+  function moveCanvasDrag(e){if(!dragState||activePhotoIndex===null)return;const pt=canvasPoint(e),c=ensureCrop(activePhotoIndex),dx=(pt.x-dragState.startX)/Math.max(1,dragState.rect.w),dy=(pt.y-dragState.startY)/Math.max(1,dragState.rect.h);c.panX=Math.max(-2,Math.min(2,dragState.panX+dx));c.panY=Math.max(-2,Math.min(2,dragState.panY+dy));renderStrip();if(e.cancelable)e.preventDefault()}
   function endCanvasDrag(){dragState=null;$('stripCanvas').classList.remove('dragging')}
 
   function syncFloatingPreview(){
